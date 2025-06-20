@@ -27,7 +27,7 @@ class IndianStockFetcher:
         return self.get_all_nse_stocks_dynamically(save_to_file=True)
     
     def get_stock_info(self, symbol: str) -> Optional[Dict]:
-        """Get stock information"""
+        """Get stock information including sector"""
         try:
             stock = yf.Ticker(symbol)
             info = stock.info
@@ -36,6 +36,7 @@ class IndianStockFetcher:
                 'symbol': symbol,
                 'company_name': info.get('longName', info.get('shortName', '')),
                 'sector': info.get('sector', ''),
+                'industry': info.get('industry', ''),
                 'market_cap': info.get('marketCap', 0)
             }
         except Exception as e:
@@ -83,7 +84,47 @@ class IndianStockFetcher:
             logger.error(f"Error fetching recent data for {symbol}: {e}")
             return None
     
-    def convert_to_price_records(self, df: pd.DataFrame) -> List[Dict]:
+    def enrich_stocks_with_sectors(self, stocks: List[Dict], batch_size: int = 20) -> List[Dict]:
+        """Enrich stock data with sector information from Yahoo Finance"""
+        enriched_stocks = []
+        
+        logger.info(f"Enriching {len(stocks)} stocks with sector information...")
+        
+        for i in range(0, len(stocks), batch_size):
+            batch = stocks[i:i + batch_size]
+            logger.info(f"Processing sector batch {i//batch_size + 1}/{(len(stocks)-1)//batch_size + 1}")
+            
+            for stock in batch:
+                try:
+                    # Get sector info if not already present
+                    if not stock.get('sector') or not stock.get('industry'):
+                        symbol_without_ns = stock['symbol'].replace('.NS', '')
+                        stock_info = self.get_stock_info(stock['symbol'])
+                        
+                        if stock_info:
+                            stock['sector'] = stock_info.get('sector', stock.get('sector', ''))
+                            stock['industry'] = stock_info.get('industry', stock.get('industry', ''))
+                            stock['company_name'] = stock_info.get('company_name', stock.get('company_name', ''))
+                            stock['market_cap'] = stock_info.get('market_cap', stock.get('market_cap', 0))
+                            
+                            logger.debug(f"✓ {stock['symbol']} - {stock.get('sector', 'Unknown')}")
+                        else:
+                            logger.debug(f"✗ {stock['symbol']} - No info available")
+                    
+                    enriched_stocks.append(stock)
+                    
+                except Exception as e:
+                    logger.warning(f"Failed to enrich {stock['symbol']}: {e}")
+                    enriched_stocks.append(stock)
+                
+                # Rate limiting
+                time.sleep(0.1)
+            
+            # Longer delay between batches
+            time.sleep(2)
+        
+        logger.info(f"Successfully enriched {len(enriched_stocks)} stocks with sector data")
+        return enriched_stocks
         """Convert DataFrame to price records for database insertion (close price only)"""
         records = []
         

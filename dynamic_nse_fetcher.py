@@ -120,6 +120,7 @@ class DynamicNSEFetcher:
                                     'symbol': symbol + '.NS',
                                     'company_name': company_name,
                                     'sector': sector,
+                                    'industry': '',
                                     'market_cap': None
                                 })
                         
@@ -197,6 +198,7 @@ class DynamicNSEFetcher:
                                 'symbol': symbol + '.NS',
                                 'company_name': stock.get('companyName', ''),
                                 'sector': stock.get('industry', ''),
+                                'industry': '',
                                 'market_cap': None
                             })
                 
@@ -248,6 +250,7 @@ class DynamicNSEFetcher:
                                     'symbol': symbol + '.NS',
                                     'company_name': '',  # Bhavcopy doesn't have company names
                                     'sector': '',
+                                    'industry': '',
                                     'market_cap': None
                                 })
                         
@@ -356,6 +359,8 @@ class DynamicNSEFetcher:
                     existing['company_name'] = stock['company_name']
                 if not existing['sector'] and stock['sector']:
                     existing['sector'] = stock['sector']
+                if not existing['industry'] and stock['industry']:
+                    existing['industry'] = stock['industry']
         
         final_symbols = list(unique_symbols.values())
         

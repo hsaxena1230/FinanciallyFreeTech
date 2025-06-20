@@ -81,6 +81,7 @@ class TimescaleDBManager:
                         symbol VARCHAR(20) UNIQUE NOT NULL,
                         company_name VARCHAR(255),
                         sector VARCHAR(100),
+                        industry VARCHAR(100),
                         market_cap BIGINT,
                         created_at TIMESTAMPTZ DEFAULT NOW(),
                         updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -106,6 +107,16 @@ class TimescaleDBManager:
                 """)
                 
                 # Create indexes for better performance
+                cursor.execute("""
+                    CREATE INDEX IF NOT EXISTS idx_stocks_sector 
+                    ON stocks (sector);
+                """)
+                
+                cursor.execute("""
+                    CREATE INDEX IF NOT EXISTS idx_stocks_industry 
+                    ON stocks (industry);
+                """)
+                
                 cursor.execute("""
                     CREATE INDEX IF NOT EXISTS idx_stock_prices_symbol_time 
                     ON stock_prices (symbol, time DESC);
@@ -134,12 +145,13 @@ class TimescaleDBManager:
             with self.connection.cursor() as cursor:
                 for stock in stocks:
                     cursor.execute("""
-                        INSERT INTO stocks (symbol, company_name, sector, market_cap)
-                        VALUES (%(symbol)s, %(company_name)s, %(sector)s, %(market_cap)s)
+                        INSERT INTO stocks (symbol, company_name, sector, industry, market_cap)
+                        VALUES (%(symbol)s, %(company_name)s, %(sector)s, %(industry)s, %(market_cap)s)
                         ON CONFLICT (symbol) 
                         DO UPDATE SET 
                             company_name = EXCLUDED.company_name,
                             sector = EXCLUDED.sector,
+                            industry = EXCLUDED.industry,
                             market_cap = EXCLUDED.market_cap,
                             updated_at = NOW()
                     """, stock)

@@ -1,3 +1,124 @@
+def fetch_stocks_to_file():
+    """Fetch NSE stocks and save to file (no database, no prices)"""
+    logger = logging.getLogger(__name__)
+    config = Config()
+    fetcher = IndianStockFetcher()
+    
+    logger.info("🔄 Fetching NSE stocks and saving to files...")
+    logger.info(f"📁 Output file: {config.STOCKS_OUTPUT_FILE}")
+    
+    # Fetch stocks
+    stocks = fetcher.fetch_stocks_only()
+    
+    if stocks:
+        logger.info(f"✅ Successfully fetched {len(stocks)} NSE stocks")
+        return True
+    else:
+        logger.error("❌ Failed to fetch stocks")
+        return False
+
+def enrich_existing_stocks_with_sectors():
+    """Enrich existing stocks in database with sector information"""
+    logger = logging.getLogger(__name__)
+    db = TimescaleDBManager()
+    fetcher = IndianStockFetcher()
+    
+    if not db.connect():
+        logger.error("Failed to connect to database")
+        return False
+    
+    # Get all symbols from database that need sector data
+    try:
+        with db.connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT symbol, company_name, sector, industry 
+                FROM stocks 
+                WHERE sector IS NULL OR sector = '' OR industry IS NULL OR industry = ''
+                ORDER BY symbol
+            """)
+            stocks_to_enrich = cursor.fetchall()
+            
+        if not stocks_to_enrich:
+            logger.info("✅ All stocks already have sector information")
+            db.close()
+            return True
+            
+        logger.info(f"Found {len(stocks_to_enrich)} stocks needing sector information")
+        
+        # Process in batches
+        batch_size = 20
+        enriched_count = 0
+        
+        for i in range(0, len(stocks_to_enrich), batch_size):
+            batch = stocks_to_enrich[i:i + batch_size]
+            logger.info(f"Processing batch {i//batch_size + 1}/{(len(stocks_to_enrich)-1)//batch_size + 1}")
+            
+            for symbol, company_name, current_sector, current_industry in batch:
+                try:
+                    # Get sector info from Yahoo Finance
+                    stock_info = fetcher.get_stock_info(symbol)
+                    
+                    if stock_info:
+                        new_sector = stock_info.get('sector', '').strip()
+                        new_industry = stock_info.get('industry', '').strip()
+                        new_company_name = stock_info.get('company_name', '').strip()
+                        market_cap = stock_info.get('market_cap', 0)
+                        
+                        # Update database if we got new information
+                        if new_sector or new_industry or new_company_name:
+                            with db.connection.cursor() as cursor:
+                                cursor.execute("""
+                                    UPDATE stocks 
+                                    SET sector = COALESCE(NULLIF(%s, ''), sector),
+                                        industry = COALESCE(NULLIF(%s, ''), industry),
+                                        company_name = COALESCE(NULLIF(%s, ''), company_name),
+                                        market_cap = COALESCE(NULLIF(%s, 0), market_cap),
+                                        updated_at = NOW()
+                                    WHERE symbol = %s
+                                """, (new_sector, new_industry, new_company_name, market_cap, symbol))
+                            
+                            db.connection.commit()
+                            enriched_count += 1
+                            
+                            logger.info(f"✓ {symbol}: {new_sector} - {new_industry}")
+                        else:
+                            logger.debug(f"✗ {symbol}: No sector info available")
+                    else:
+                        logger.debug(f"✗ {symbol}: Failed to get stock info")
+                        
+                except Exception as e:
+                    logger.warning(f"Error enriching {symbol}: {e}")
+                    continue
+                
+                # Rate limiting
+                time.sleep(0.2)
+            
+            # Longer delay between batches
+            logger.info(f"Completed batch {i//batch_size + 1}, waiting 3 seconds...")
+            time.sleep(3)
+        
+        logger.info(f"✅ Successfully enriched {enriched_count} stocks with sector information")
+        db.close()
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error during sector enrichment: {e}")
+        db.close()
+        return False
+    """Apply database migrations to update schema"""
+    logger = logging.getLogger(__name__)
+    db = TimescaleDBManager()
+    
+    logger.info("Applying database migrations...")
+    if db.migrate_database():
+        logger.info("Database migration completed successfully")
+        db.close()
+        return True
+    else:
+        logger.error("Database migration failed")
+        db.close()
+        return False
+
 def setup_stocks():
     """Setup stock metadata in database (ALL NSE stocks dynamically)"""
     logger = logging.getLogger(__name__)
@@ -432,7 +553,9 @@ def main():
     
     parser = argparse.ArgumentParser(description='Indian Stock Price Tracker')
     parser.add_argument('--init', action='store_true', help='Initialize database')
+    parser.add_argument('--migrate', action='store_true', help='Apply database migrations')
     parser.add_argument('--setup-stocks', action='store_true', help='Setup ALL NSE stocks in database (no prices)')
+    parser.add_argument('--enrich-sectors', action='store_true', help='Enrich existing stocks with sector information')
     parser.add_argument('--load-history', action='store_true', help='Load historical price data for stocks in database')
     parser.add_argument('--update', action='store_true', help='Update current prices for stocks in database')
     parser.add_argument('--schedule', action='store_true', help='Run scheduler for periodic updates')
@@ -451,6 +574,22 @@ def main():
             logger.info("Database initialization completed")
         else:
             logger.error("Database initialization failed")
+            return 1
+    
+    elif args.migrate:
+        logger.info("Applying database migrations...")
+        if migrate_database():
+            logger.info("Database migration completed")
+        else:
+            logger.error("Database migration failed")
+            return 1
+    
+    elif args.enrich_sectors:
+        logger.info("Enriching existing stocks with sector information...")
+        if enrich_existing_stocks_with_sectors():
+            logger.info("Sector enrichment completed successfully")
+        else:
+            logger.error("Sector enrichment failed")
             return 1
     
     elif args.setup_stocks:
@@ -487,6 +626,14 @@ def main():
             logger.info("Validation and cleanup completed")
         else:
             logger.error("Validation and cleanup failed")
+            return 1
+    
+    elif args.fetch_stocks:
+        logger.info("Fetching stocks and saving to file...")
+        if fetch_stocks_to_file():
+            logger.info("Stock fetching completed successfully")
+        else:
+            logger.error("Stock fetching failed")
             return 1
     
     elif args.test_fetch:
@@ -532,7 +679,9 @@ def main():
         
         steps = [
             ("Initializing database", initialize_database),
+            ("Applying migrations", migrate_database),
             ("Setting up stocks", setup_stocks),
+            ("Enriching with sectors", enrich_existing_stocks_with_sectors),
             ("Loading historical data", load_historical_data)
         ]
         
