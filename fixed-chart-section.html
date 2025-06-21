@@ -1,0 +1,1911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indian Stocks Explorer</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fa;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header styles */
+        header {
+            background-color: #4338ca;
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+        }
+        
+        header p {
+            color: #c7d2fe;
+            margin-top: 0.25rem;
+        }
+        
+        /* Stats cards */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .stat-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .stat-card h3 {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-card p {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #4338ca;
+        }
+        
+        /* Filter section */
+        .filter-section {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .filter-header h2 {
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .filter-header button {
+            display: flex;
+            align-items: center;
+            color: #4338ca;
+            background: none;
+            border: none;
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+        
+        .filter-header button:hover {
+            color: #312e81;
+        }
+        
+        .filter-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .filter-group label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #4b5563;
+            margin-bottom: 0.25rem;
+        }
+        
+        .filter-group select,
+        .filter-group input {
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            width: 100%;
+        }
+        
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: #4338ca;
+            ring: 2px solid #c7d2fe;
+        }
+        
+        .search-input-container {
+            position: relative;
+        }
+        
+        .search-input-container input {
+            padding-left: 2.5rem;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1rem;
+            height: 1rem;
+            color: #9ca3af;
+            pointer-events: none;
+        }
+        
+        .clear-search {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            font-size: 1.25rem;
+            display: none;
+        }
+        
+        .clear-search:hover {
+            color: #4b5563;
+        }
+        
+        /* Action button */
+        .action-button {
+            padding: 0.5rem 1rem;
+            background-color: #4338ca;
+            color: white;
+            border: none;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .action-button:hover {
+            background-color: #3730a3;
+        }
+        
+        /* Results section */
+        .results-section {
+            background-color: white;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .results-header {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .results-header h2 {
+            font-size: 1.125rem;
+            color: #1f2937;
+        }
+        
+        .error-message {
+            padding: 1rem;
+            background-color: #fee2e2;
+            border-left: 4px solid #ef4444;
+            color: #b91c1c;
+        }
+        
+        .loading-container {
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .loading-spinner {
+            width: 2rem;
+            height: 2rem;
+            border: 3px solid #e5e7eb;
+            border-radius: 50%;
+            border-top-color: #4338ca;
+            margin: 0 auto 1rem;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .loading-text {
+            color: #6b7280;
+        }
+        
+        .no-results {
+            padding: 2rem;
+            text-align: center;
+            color: #6b7280;
+        }
+        
+        /* Table styles */
+        .stocks-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .stocks-table th {
+            background-color: #f9fafb;
+            padding: 0.75rem 1.5rem;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .stocks-table td {
+            padding: 1rem 1.5rem;
+            font-size: 0.875rem;
+            border-top: 1px solid #e5e7eb;
+            white-space: nowrap;
+        }
+        
+        .stocks-table tr:hover {
+            background-color: #f9fafb;
+        }
+        
+        .symbol-cell {
+            font-weight: 500;
+            color: #4338ca;
+        }
+        
+        .company-cell {
+            position: relative;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        /* Index section */
+        .index-section {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            display: none;
+        }
+        
+        .index-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .index-title-area h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+        
+        .index-subtitle {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .index-close {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+        
+        .index-close:hover {
+            color: #4b5563;
+        }
+        
+        .index-selector {
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .index-container {
+            height: 350px;
+            position: relative;
+        }
+        
+        .index-loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .index-error {
+            padding: 2rem;
+            font-size: 0.875rem;
+            color: #b91c1c;
+            text-align: center;
+            display: none;
+        }
+        
+        .index-canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .performance-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .performance-header h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+        
+        .performance-subtitle {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .performance-close {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+        
+        .performance-close:hover {
+            color: #4b5563;
+        }
+        
+        .performance-tabs {
+            display: flex;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 1rem;
+        }
+        
+        .performance-tab {
+            padding: 0.5rem 1rem;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: #6b7280;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .performance-tab.active {
+            color: #4338ca;
+            border-bottom-color: #4338ca;
+        }
+        
+        .performance-content {
+            overflow: auto;
+        }
+        
+        .performance-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .performance-table th {
+            background-color: #f9fafb;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .performance-table td {
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .performance-table tr:hover {
+            background-color: #f9fafb;
+        }
+        
+        .change-positive {
+            color: #10b981;
+            font-weight: 500;
+        }
+        
+        .change-negative {
+            color: #ef4444;
+            font-weight: 500;
+        }
+        
+        .performance-loading {
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .performance-error {
+            padding: 1rem;
+            color: #b91c1c;
+            text-align: center;
+            background-color: #fee2e2;
+            border-radius: 0.375rem;
+            margin-top: 1rem;
+        }
+        
+        .price-chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .price-chart-title-area h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+        
+        .price-chart-subtitle {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .price-chart-close {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+        
+        .price-chart-close:hover {
+            color: #4b5563;
+        }
+        
+        .price-chart-container {
+            height: 300px;
+            position: relative;
+        }
+        
+        .price-chart-loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .price-chart-error {
+            padding: 2rem;
+            font-size: 0.875rem;
+            color: #b91c1c;
+            text-align: center;
+            display: none;
+        }
+        
+        .price-chart-canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Pagination */
+        .pagination {
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .pagination-info {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .pagination-info strong {
+            font-weight: 500;
+        }
+        
+        .pagination-controls {
+            display: flex;
+            gap: 0.25rem;
+        }
+        
+        .pagination-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border: 1px solid #d1d5db;
+            background-color: white;
+            color: #4b5563;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+        
+        .pagination-btn:hover:not(:disabled) {
+            background-color: #f9fafb;
+        }
+        
+        .pagination-btn:disabled {
+            color: #d1d5db;
+            cursor: not-allowed;
+        }
+        
+        .pagination-btn.active {
+            background-color: #eef2ff;
+            border-color: #4338ca;
+            color: #4338ca;
+            z-index: 10;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: #1f2937;
+            color: white;
+            padding: 1.5rem 0;
+            margin-top: 3rem;
+            text-align: center;
+        }
+        
+        footer p {
+            margin-bottom: 0.25rem;
+        }
+        
+        footer .credit {
+            color: #9ca3af;
+            font-size: 0.875rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .filter-controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .pagination {
+                flex-direction: column;
+                gap: 0.75rem;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container" style="display: flex; align-items: center;">
+            <img src="images/financially-free-logo.png" alt="Financially Free Logo" style="height: 60px; margin-right: 20px;">
+            <div>
+                <h1>Stocks Explorer</h1>
+                <p>Browse, filter and search NSE stocks by sector and industry</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Stats Cards -->
+        <div class="stats-container" id="stats-container">
+            <div class="stat-card">
+                <h3>Total Stocks</h3>
+                <p id="total-stocks">-</p>
+            </div>
+            <div class="stat-card">
+                <h3>Unique Sectors</h3>
+                <p id="unique-sectors">-</p>
+            </div>
+            <div class="stat-card">
+                <h3>Unique Industries</h3>
+                <p id="unique-industries">-</p>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-section">
+            <div class="filter-header">
+                <h2>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon" style="margin-right: 8px;">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                    </svg>
+                    Filter Stocks
+                </h2>
+                <button id="clear-filters">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon" style="margin-right: 4px;">
+                        <path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c-4.97 0-9-4.03-9-9m9 9a9 9 0 0 0 9-9" />
+                    </svg>
+                    Clear Filters
+                </button>
+            </div>
+            
+            <div class="filter-controls">
+                <div class="filter-group">
+                    <label for="sector-select">Sector</label>
+                    <select id="sector-select">
+                        <option value="">All Sectors</option>
+                        <!-- Sectors will be loaded dynamically -->
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="industry-select">Industry</label>
+                    <select id="industry-select" disabled>
+                        <option value="">All Industries</option>
+                        <!-- Industries will be loaded dynamically -->
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="search-input">Search by Name or Symbol</label>
+                    <div class="search-input-container">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon">
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="m21 21-4.3-4.3" />
+                        </svg>
+                        <input type="text" id="search-input" placeholder="Type to search...">
+                        <button id="clear-search" class="clear-search">×</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="filter-controls" style="margin-top: 16px;">
+                <div class="filter-group">
+                    <label for="stock-select">Select Stock for Chart</label>
+                    <select id="stock-select">
+                        <option value="">Choose a stock...</option>
+                        <!-- Stocks will be loaded dynamically -->
+                    </select>
+                </div>
+                
+                <div class="filter-group" style="display: flex; align-items: flex-end;">
+                    <button id="show-chart-btn" class="action-button">
+                        Show Price Chart
+                    </button>
+                </div>
+                
+                <div class="filter-group" style="display: flex; align-items: flex-end;">
+                    <button id="show-performance-btn" class="action-button" style="background-color: #10b981;">
+                        Top/Worst Performers
+                    </button>
+                </div>
+                
+                <div class="filter-group" style="display: flex; align-items: flex-end;">
+                    <button id="show-index-btn" class="action-button" style="background-color: #f59e0b;">
+                        Sector/Industry Index
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="results-section">
+            <div class="results-header">
+                <h2 id="results-title">Stocks</h2>
+            </div>
+            
+            <!-- Error message (hidden by default) -->
+            <div class="error-message" id="error-message" style="display: none;"></div>
+            
+            <!-- Loading indicator (hidden by default) -->
+            <div class="loading-container" id="loading-container" style="display: none;">
+                <div class="loading-spinner"></div>
+                <p class="loading-text">Loading stock data...</p>
+            </div>
+            
+            <!-- Table container -->
+            <div class="table-container" id="table-container">
+                <table class="stocks-table">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Company Name</th>
+                            <th>Industry</th>
+                            <th>Market Cap (₹Cr)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stocks-table-body">
+                        <!-- Stocks will be loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- No results message (hidden by default) -->
+            <div class="no-results" id="no-results" style="display: none;">
+                <p>No stocks found matching your criteria.</p>
+            </div>
+            
+            <!-- Pagination -->
+            <div class="pagination" id="pagination" style="display: none;">
+                <div class="pagination-info" id="pagination-info">
+                    Showing <strong>1-10</strong> of <strong>100</strong> results
+                </div>
+                <div class="pagination-controls" id="pagination-controls">
+                    <!-- Pagination buttons will be created dynamically -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Price chart section (hidden by default) -->
+        <div class="price-chart-section" id="price-chart-section">
+            <div class="price-chart-header">
+                <div class="price-chart-title-area">
+                    <h3 id="chart-title">Stock Price History</h3>
+                    <div class="price-chart-subtitle" id="chart-subtitle">Select a stock to view price history</div>
+                </div>
+                <button type="button" class="price-chart-close" id="chart-close-btn">×</button>
+            </div>
+            <div class="price-chart-container">
+                <canvas id="price-chart-canvas" class="price-chart-canvas"></canvas>
+                <div class="price-chart-loading" id="chart-loading" style="display: none;">
+                    <div class="loading-spinner"></div>
+                </div>
+                <div class="price-chart-error" id="chart-error" style="display: none;">
+                    No price history available
+                </div>
+            </div>
+        </div>
+        
+        <!-- Performance section (hidden by default) -->
+        <div class="performance-section" id="performance-section">
+            <div class="performance-header">
+                <div class="performance-title-area">
+                    <h3>Stock Performance (1 Year)</h3>
+                    <div class="performance-subtitle" id="performance-subtitle">Showing top and worst performers</div>
+                </div>
+                <button type="button" class="performance-close" id="performance-close-btn">×</button>
+            </div>
+            
+            <div class="performance-tabs">
+                <button type="button" class="performance-tab active" id="top-performers-tab">Top Performers</button>
+                <button type="button" class="performance-tab" id="worst-performers-tab">Worst Performers</button>
+            </div>
+            
+            <div class="performance-content">
+                <!-- Loading indicator (hidden by default) -->
+                <div class="performance-loading" id="performance-loading" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <p>Loading performance data...</p>
+                </div>
+                
+                <!-- Error message (hidden by default) -->
+                <div class="performance-error" id="performance-error" style="display: none;">
+                    Unable to load performance data
+                </div>
+                
+                <!-- Top performers table (visible by default) -->
+                <div id="top-performers-content">
+                    <table class="performance-table" id="top-performers-table">
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Company</th>
+                                <th>Current Price</th>
+                                <th>Year Ago</th>
+                                <th>Change (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top-performers-body">
+                            <!-- Will be populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Worst performers table (hidden by default) -->
+                <div id="worst-performers-content" style="display: none;">
+                    <table class="performance-table" id="worst-performers-table">
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Company</th>
+                                <th>Current Price</th>
+                                <th>Year Ago</th>
+                                <th>Change (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="worst-performers-body">
+                            <!-- Will be populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Index section (hidden by default) -->
+        <div class="index-section" id="index-section">
+            <div class="index-header">
+                <div class="index-title-area">
+                    <h3>Equiweighted Index</h3>
+                    <div class="index-subtitle" id="index-subtitle">Select an index type and name to view</div>
+                </div>
+                <button type="button" class="index-close" id="index-close-btn">×</button>
+            </div>
+            
+            <div class="index-selector">
+                <div class="filter-group">
+                    <label for="index-type-select">Index Type</label>
+                    <select id="index-type-select">
+                        <option value="">Select Type</option>
+                        <option value="sector">Sector</option>
+                        <option value="industry">Industry</option>
+                        <option value="sector_industry">Sector-Industry</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="index-name-select">Index Name</label>
+                    <select id="index-name-select" disabled>
+                        <option value="">Select Index</option>
+                        <!-- Index names will be loaded dynamically -->
+                    </select>
+                </div>
+            </div>
+            
+            <div class="index-container">
+                <canvas id="index-canvas" class="index-canvas"></canvas>
+                <div class="index-loading" id="index-loading" style="display: none;">
+                    <div class="loading-spinner"></div>
+                </div>
+                <div class="index-error" id="index-error" style="display: none;">
+                    No index data available
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; <span id="current-year">2025</span> FinanciallyFreeTech</p>
+            <p class="credit">Built with HTML, CSS and JavaScript, powered by TimescaleDB</p>
+        </div>
+    </footer>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:5000/api';
+        const DEFAULT_LIMIT = 10;
+        
+        // State variables
+        let state = {
+            sectors: [],
+            industries: [],
+            companies: [],
+            stats: null,
+            loading: false,
+            error: null,
+            selectedSector: '',
+            selectedIndustry: '',
+            searchQuery: '',
+            pagination: {
+                page: 1,
+                limit: DEFAULT_LIMIT,
+                total: 0,
+                pages: 0
+            },
+            priceChart: {
+                chart: null,
+                currentSymbol: null,
+                loading: false,
+                error: null
+            }
+        };
+        
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM fully loaded');
+            
+            // Add Chart.js script
+            const chartScript = document.createElement('script');
+            chartScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js';
+            chartScript.onload = function() {
+                console.log('Chart.js loaded');
+                initApp();
+            };
+            document.head.appendChild(chartScript);
+        });
+        
+        // Initialize the application
+        function initApp() {
+            // Get DOM elements
+            const elements = {
+                // Filter elements
+                sectorSelect: document.getElementById('sector-select'),
+                industrySelect: document.getElementById('industry-select'),
+                searchInput: document.getElementById('search-input'),
+                clearSearchBtn: document.getElementById('clear-search'),
+                clearFiltersBtn: document.getElementById('clear-filters'),
+                stockSelect: document.getElementById('stock-select'),
+                showChartBtn: document.getElementById('show-chart-btn'),
+                showPerformanceBtn: document.getElementById('show-performance-btn'),
+                
+                // Results elements
+                resultsTitle: document.getElementById('results-title'),
+                errorMessage: document.getElementById('error-message'),
+                loadingContainer: document.getElementById('loading-container'),
+                tableContainer: document.getElementById('table-container'),
+                stocksTableBody: document.getElementById('stocks-table-body'),
+                noResults: document.getElementById('no-results'),
+                pagination: document.getElementById('pagination'),
+                paginationInfo: document.getElementById('pagination-info'),
+                paginationControls: document.getElementById('pagination-controls'),
+                
+                // Chart elements
+                priceChartSection: document.getElementById('price-chart-section'),
+                chartTitle: document.getElementById('chart-title'),
+                chartSubtitle: document.getElementById('chart-subtitle'),
+                chartCanvas: document.getElementById('price-chart-canvas'),
+                chartLoading: document.getElementById('chart-loading'),
+                chartError: document.getElementById('chart-error'),
+                chartCloseBtn: document.getElementById('chart-close-btn'),
+                
+                // Performance elements
+                performanceSection: document.getElementById('performance-section'),
+                performanceSubtitle: document.getElementById('performance-subtitle'),
+                performanceLoading: document.getElementById('performance-loading'),
+                performanceError: document.getElementById('performance-error'),
+                topPerformersTab: document.getElementById('top-performers-tab'),
+                worstPerformersTab: document.getElementById('worst-performers-tab'),
+                topPerformersContent: document.getElementById('top-performers-content'),
+                worstPerformersContent: document.getElementById('worst-performers-content'),
+                topPerformersBody: document.getElementById('top-performers-body'),
+                worstPerformersBody: document.getElementById('worst-performers-body'),
+                performanceCloseBtn: document.getElementById('performance-close-btn')
+            };
+            
+            console.log('Elements loaded:', elements);
+            
+            // Check if required elements exist
+            const requiredElements = [
+                'sectorSelect', 'industrySelect', 'stockSelect', 'showChartBtn',
+                'priceChartSection', 'chartTitle', 'chartCanvas',
+                'performanceSection', 'topPerformersTab', 'worstPerformersTab'
+            ];
+            
+            for (const element of requiredElements) {
+                if (!elements[element]) {
+                    console.error(`Required element ${element} not found!`);
+                }
+            }
+            
+            // Add event listeners
+            elements.sectorSelect.addEventListener('change', e => handleSectorChange(e, elements));
+            elements.industrySelect.addEventListener('change', e => handleIndustryChange(e, elements));
+            elements.searchInput.addEventListener('input', e => handleSearchInput(e, elements));
+            elements.searchInput.addEventListener('keydown', e => handleSearchKeydown(e, elements));
+            elements.clearSearchBtn.addEventListener('click', () => clearSearch(elements));
+            elements.clearFiltersBtn.addEventListener('click', () => clearFilters(elements));
+            elements.showChartBtn.addEventListener('click', () => showStockChart(elements));
+            elements.chartCloseBtn.addEventListener('click', () => hideChartSection(elements));
+            
+            // Performance tab event listeners
+            elements.showPerformanceBtn.addEventListener('click', () => fetchAndShowPerformance(elements));
+            elements.performanceCloseBtn.addEventListener('click', () => hidePerformanceSection(elements));
+            elements.topPerformersTab.addEventListener('click', () => switchPerformanceTab('top', elements));
+            elements.worstPerformersTab.addEventListener('click', () => switchPerformanceTab('worst', elements));
+            
+            // Set current year in footer
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+            
+            // Fetch initial data
+            fetchSectors(elements);
+            fetchStats(elements);
+            fetchCompanies(state.selectedSector, state.selectedIndustry, state.pagination.page, state.pagination.limit, elements);
+        }
+        
+        // Show stock chart for the selected stock
+        function showStockChart(elements) {
+            const symbol = elements.stockSelect.value;
+            if (!symbol) {
+                alert('Please select a stock first');
+                return;
+            }
+            
+            const companyName = elements.stockSelect.options[elements.stockSelect.selectedIndex].text;
+            showStockPriceChart(symbol, companyName, elements);
+        }
+        
+        // Fetch sectors from API
+        async function fetchSectors(elements) {
+            try {
+                setLoading(true, elements);
+                const response = await fetch(`${API_BASE_URL}/sectors`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    state.sectors = data.data;
+                    populateSectorSelect(elements);
+                } else {
+                    setError(data.error || 'Failed to fetch sectors', elements);
+                }
+            } catch (err) {
+                setError('Error connecting to the server', elements);
+                console.error(err);
+            } finally {
+                setLoading(false, elements);
+            }
+        }
+        
+        // Fetch industries based on selected sector
+        async function fetchIndustries(sector, elements) {
+            try {
+                setLoading(true, elements);
+                const url = sector 
+                    ? `${API_BASE_URL}/industries?sector=${encodeURIComponent(sector)}`
+                    : `${API_BASE_URL}/industries`;
+                    
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.success) {
+                    state.industries = data.data;
+                    populateIndustrySelect(elements);
+                } else {
+                    setError(data.error || 'Failed to fetch industries', elements);
+                }
+            } catch (err) {
+                setError('Error connecting to the server', elements);
+                console.error(err);
+            } finally {
+                setLoading(false, elements);
+            }
+        }
+        
+        // Fetch companies based on filters and pagination
+        async function fetchCompanies(sector, industry, page, limit, elements) {
+            try {
+                setLoading(true, elements);
+                let url = `${API_BASE_URL}/companies?page=${page}&limit=${limit}`;
+                
+                if (sector) {
+                    url += `&sector=${encodeURIComponent(sector)}`;
+                }
+                
+                if (industry) {
+                    url += `&industry=${encodeURIComponent(industry)}`;
+                }
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.success) {
+                    state.companies = data.data.companies;
+                    state.pagination = data.data.pagination;
+                    updateResultsDisplay(elements);
+                    populateStockSelect(elements);
+                } else {
+                    setError(data.error || 'Failed to fetch companies', elements);
+                }
+            } catch (err) {
+                setError('Error connecting to the server', elements);
+                console.error(err);
+            } finally {
+                setLoading(false, elements);
+            }
+        }
+        
+        // Search companies by name or symbol
+        async function searchCompanies(query, elements) {
+            if (query.length < 2) return;
+            
+            try {
+                setLoading(true, elements);
+                const response = await fetch(`${API_BASE_URL}/search?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    state.companies = data.data;
+                    // Reset pagination during search
+                    state.pagination = {
+                        ...state.pagination,
+                        total: data.data.length,
+                        pages: 1
+                    };
+                    updateResultsDisplay(elements);
+                    populateStockSelect(elements);
+                } else {
+                    setError(data.error || 'Failed to search companies', elements);
+                }
+            } catch (err) {
+                setError('Error connecting to the server', elements);
+                console.error(err);
+            } finally {
+                setLoading(false, elements);
+            }
+        }
+        
+        // Fetch stock price history
+        async function fetchStockPriceHistory(symbol, elements) {
+            if (!symbol) return null;
+            
+            // Set chart loading state
+            state.priceChart.loading = true;
+            state.priceChart.error = null;
+            elements.chartLoading.style.display = 'flex';
+            elements.chartError.style.display = 'none';
+            
+            try {
+                // Call the stock_history API endpoint
+                const response = await fetch(`${API_BASE_URL}/stock_history?symbol=${encodeURIComponent(symbol)}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success && data.data && data.data.length > 0) {
+                    state.priceChart.loading = false;
+                    elements.chartLoading.style.display = 'none';
+                    return data.data;
+                } else {
+                    state.priceChart.loading = false;
+                    state.priceChart.error = 'No price history available';
+                    elements.chartLoading.style.display = 'none';
+                    elements.chartError.style.display = 'block';
+                    return null;
+                }
+            } catch (err) {
+                console.error('Error fetching stock price history:', err);
+                state.priceChart.loading = false;
+                state.priceChart.error = 'Failed to load price history';
+                elements.chartLoading.style.display = 'none';
+                elements.chartError.style.display = 'block';
+                return null;
+            }
+        }
+        
+        // Show stock price chart
+        async function showStockPriceChart(symbol, companyName, elements) {
+            console.log('Showing price chart for', symbol);
+            
+            // Make sure elements exist before trying to access them
+            if (!elements.priceChartSection) {
+                console.error('Chart section not found!');
+                return;
+            }
+
+            // Update current symbol
+            state.priceChart.currentSymbol = symbol;
+            
+            // Update chart title and subtitle
+            elements.chartTitle.textContent = `${companyName || symbol} Price History`;
+            elements.chartSubtitle.textContent = 'Loading price data...';
+            
+            // Show the chart section
+            elements.priceChartSection.style.display = 'block';
+            elements.chartLoading.style.display = 'flex';
+            elements.chartError.style.display = 'none';
+            
+            // Scroll to the chart section
+            elements.priceChartSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            // Fetch price history data
+            const priceData = await fetchStockPriceHistory(symbol, elements);
+            
+            // Debug: Log the received data
+            console.log('Received price data for', symbol, ':', priceData);
+            
+            if (priceData && priceData.length > 0) {
+                elements.chartSubtitle.textContent = `Last ${priceData.length} days of price data`;
+                renderPriceChart(priceData, elements);
+            } else {
+                // Show error if no data
+                elements.chartSubtitle.textContent = 'No price data available';
+                elements.chartError.style.display = 'block';
+            }
+        }
+        
+        // Hide the chart section
+        function hideChartSection(elements) {
+            console.log('Hiding chart section');
+            elements.priceChartSection.style.display = 'none';
+            state.priceChart.currentSymbol = null;
+            
+            // Destroy existing chart if any
+            if (state.priceChart.chart) {
+                state.priceChart.chart.destroy();
+                state.priceChart.chart = null;
+            }
+        }
+        
+        // Render price chart
+        function renderPriceChart(priceData, elements) {
+            // Add debugging
+            console.log('Rendering chart with price data:', priceData);
+            
+            // Destroy existing chart if any
+            if (state.priceChart.chart) {
+                state.priceChart.chart.destroy();
+            }
+            
+            // Prepare data for the chart - sort by date ascending
+            priceData.sort((a, b) => new Date(a.time) - new Date(b.time));
+            
+            const dates = priceData.map(item => new Date(item.time).toLocaleDateString());
+            const prices = priceData.map(item => parseFloat(item.close_price));
+            
+            console.log('Processed data for chart:', { dates, prices });
+            
+            // Create the chart
+            const ctx = elements.chartCanvas.getContext('2d');
+            state.priceChart.chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Close Price',
+                        data: prices,
+                        borderColor: '#4338ca',
+                        backgroundColor: 'rgba(67, 56, 202, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 2,
+                        pointHoverRadius: 6,
+                        pointHoverBackgroundColor: '#4338ca',
+                        pointHoverBorderColor: '#ffffff',
+                        pointHoverBorderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return `₹${context.raw.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            },
+                            ticks: {
+                                maxTicksLimit: 8,
+                                maxRotation: 0
+                            }
+                        },
+                        y: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Price (₹)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return `₹${value}`;
+                                }
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    },
+                    elements: {
+                        line: {
+                            tension: 0.4
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Fetch statistics
+        async function fetchStats(elements) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/stats`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    state.stats = data.data;
+                    updateStatsDisplay(elements);
+                }
+            } catch (err) {
+                console.error('Failed to fetch stats:', err);
+            }
+        }
+        
+        // Populate sector select dropdown
+        function populateSectorSelect(elements) {
+            // Clear options except first
+            elements.sectorSelect.innerHTML = '<option value="">All Sectors</option>';
+            
+            // Add options for each sector
+            state.sectors.forEach(sector => {
+                const option = document.createElement('option');
+                option.value = sector;
+                option.textContent = sector;
+                elements.sectorSelect.appendChild(option);
+            });
+            
+            // Set selected value if any
+            if (state.selectedSector) {
+                elements.sectorSelect.value = state.selectedSector;
+            }
+        }
+        
+        // Populate industry select dropdown
+        function populateIndustrySelect(elements) {
+            // Clear options except first
+            elements.industrySelect.innerHTML = '<option value="">All Industries</option>';
+            
+            // Add options for each industry
+            state.industries.forEach(industry => {
+                const option = document.createElement('option');
+                option.value = industry;
+                option.textContent = industry;
+                elements.industrySelect.appendChild(option);
+            });
+            
+            // Enable/disable based on sector selection
+            elements.industrySelect.disabled = !state.selectedSector;
+            
+            // Set selected value if any
+            if (state.selectedIndustry) {
+                elements.industrySelect.value = state.selectedIndustry;
+            }
+        }
+        
+        // Populate stock select dropdown
+        function populateStockSelect(elements) {
+            // Clear options except first
+            elements.stockSelect.innerHTML = '<option value="">Choose a stock...</option>';
+            
+            // Add options for each company
+            state.companies.forEach(company => {
+                const option = document.createElement('option');
+                option.value = company.symbol;
+                option.textContent = company.company_name || company.symbol.replace('.NS', '');
+                elements.stockSelect.appendChild(option);
+            });
+        }
+        
+        // Update results display
+        function updateResultsDisplay(elements) {
+            // Update title
+            if (state.searchQuery.length >= 2) {
+                elements.resultsTitle.textContent = `Search Results: ${state.companies.length} matches`;
+            } else {
+                let title = 'Stocks';
+                if (state.selectedSector) {
+                    title += ` in ${state.selectedSector}`;
+                }
+                if (state.selectedIndustry) {
+                    title += ` / ${state.selectedIndustry}`;
+                }
+                elements.resultsTitle.textContent = title;
+            }
+            
+            // Update table
+            if (state.companies.length > 0) {
+                elements.noResults.style.display = 'none';
+                elements.tableContainer.style.display = 'block';
+                renderTable(elements);
+                
+                // Show pagination if not searching and multiple pages
+                if (!state.searchQuery && state.pagination.pages > 1) {
+                    elements.pagination.style.display = 'flex';
+                    updatePagination(elements);
+                } else {
+                    elements.pagination.style.display = 'none';
+                }
+            } else {
+                elements.tableContainer.style.display = 'none';
+                elements.pagination.style.display = 'none';
+                elements.noResults.style.display = 'block';
+            }
+        }
+        
+        // Render table with stock data
+        function renderTable(elements) {
+            elements.stocksTableBody.innerHTML = '';
+            
+            state.companies.forEach(company => {
+                const row = document.createElement('tr');
+                
+                // Symbol cell
+                const symbolCell = document.createElement('td');
+                symbolCell.className = 'symbol-cell';
+                symbolCell.textContent = company.symbol.replace('.NS', '');
+                row.appendChild(symbolCell);
+                
+                // Company name cell
+                const nameCell = document.createElement('td');
+                nameCell.className = 'company-cell';
+                nameCell.textContent = company.company_name || 'N/A';
+                row.appendChild(nameCell);
+                
+                // Industry cell
+                const industryCell = document.createElement('td');
+                industryCell.textContent = company.industry || 'N/A';
+                row.appendChild(industryCell);
+                
+                // Market cap cell
+                const marketCapCell = document.createElement('td');
+                marketCapCell.textContent = formatMarketCap(company.market_cap);
+                row.appendChild(marketCapCell);
+                
+                elements.stocksTableBody.appendChild(row);
+            });
+        }
+        
+        // Update pagination controls
+        function updatePagination(elements) {
+            // Update info text
+            const start = (state.pagination.page - 1) * state.pagination.limit + 1;
+            const end = Math.min(state.pagination.page * state.pagination.limit, state.pagination.total);
+            elements.paginationInfo.innerHTML = `Showing <strong>${start}-${end}</strong> of <strong>${state.pagination.total}</strong> results`;
+            
+            // Create pagination buttons
+            elements.paginationControls.innerHTML = '';
+            
+            // Previous button
+            const prevButton = createPaginationButton('«', state.pagination.page - 1, state.pagination.page === 1, elements);
+            elements.paginationControls.appendChild(prevButton);
+            
+            // Page number buttons
+            const totalPages = state.pagination.pages;
+            const currentPage = state.pagination.page;
+            
+            let startPage = 1;
+            let endPage = totalPages;
+            
+            // Limit the number of page buttons to 5
+            if (totalPages > 5) {
+                if (currentPage <= 3) {
+                    endPage = 5;
+                } else if (currentPage >= totalPages - 2) {
+                    startPage = totalPages - 4;
+                } else {
+                    startPage = currentPage - 2;
+                    endPage = currentPage + 2;
+                }
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const pageButton = createPaginationButton(i, i, false, elements, currentPage === i);
+                elements.paginationControls.appendChild(pageButton);
+            }
+            
+            // Next button
+            const nextButton = createPaginationButton('»', state.pagination.page + 1, state.pagination.page === state.pagination.pages, elements);
+            elements.paginationControls.appendChild(nextButton);
+        }
+        
+        // Create a pagination button
+        function createPaginationButton(text, page, disabled, elements, active = false) {
+            const button = document.createElement('button');
+            button.className = 'pagination-btn';
+            if (active) button.classList.add('active');
+            button.textContent = text;
+            button.disabled = disabled;
+            
+            if (!disabled) {
+                button.addEventListener('click', () => handlePageChange(page, elements));
+            }
+            
+            return button;
+        }
+        
+        // Update stats display
+        function updateStatsDisplay(elements) {
+            if (!state.stats) return;
+            
+            document.getElementById('total-stocks').textContent = state.stats.overall.total_stocks.toLocaleString();
+            document.getElementById('unique-sectors').textContent = state.stats.overall.unique_sectors.toLocaleString();
+            document.getElementById('unique-industries').textContent = state.stats.overall.unique_industries.toLocaleString();
+        }
+        
+        // Set loading state
+        function setLoading(isLoading, elements) {
+            state.loading = isLoading;
+            
+            if (isLoading) {
+                elements.loadingContainer.style.display = 'block';
+                elements.tableContainer.style.display = 'none';
+                elements.pagination.style.display = 'none';
+                elements.noResults.style.display = 'none';
+                elements.errorMessage.style.display = 'none';
+            } else {
+                elements.loadingContainer.style.display = 'none';
+            }
+        }
+        
+        // Set error message
+        function setError(message, elements) {
+            state.error = message;
+            
+            if (message) {
+                elements.errorMessage.textContent = message;
+                elements.errorMessage.style.display = 'block';
+            } else {
+                elements.errorMessage.style.display = 'none';
+            }
+        }
+        
+        // Fetch and show performance data
+        async function fetchAndShowPerformance(elements) {
+            // Show performance section
+            elements.performanceSection.style.display = 'block';
+            elements.performanceLoading.style.display = 'block';
+            elements.performanceError.style.display = 'none';
+            elements.topPerformersContent.style.display = 'none';
+            elements.worstPerformersContent.style.display = 'none';
+            
+            // Update subtitle
+            let subtitle = 'Showing';
+            if (state.selectedSector) {
+                subtitle += ` for ${state.selectedSector} sector`;
+                if (state.selectedIndustry) {
+                    subtitle += `, ${state.selectedIndustry} industry`;
+                }
+            } else {
+                subtitle += ' for all sectors';
+            }
+            elements.performanceSubtitle.textContent = subtitle;
+            
+            // Scroll to the performance section
+            elements.performanceSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            try {
+                // Fetch performance data
+                let url = `${API_BASE_URL}/stock_performance?limit=10`;
+                
+                if (state.selectedSector) {
+                    url += `&sector=${encodeURIComponent(state.selectedSector)}`;
+                }
+                
+                if (state.selectedIndustry) {
+                    url += `&industry=${encodeURIComponent(state.selectedIndustry)}`;
+                }
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success && data.data) {
+                    // Populate performance tables
+                    populatePerformanceTables(data.data, elements);
+                    
+                    // Show content based on active tab
+                    if (elements.topPerformersTab.classList.contains('active')) {
+                        elements.topPerformersContent.style.display = 'block';
+                    } else {
+                        elements.worstPerformersContent.style.display = 'block';
+                    }
+                    
+                    elements.performanceLoading.style.display = 'none';
+                } else {
+                    throw new Error('Failed to get performance data');
+                }
+            } catch (err) {
+                console.error('Error fetching stock performance:', err);
+                elements.performanceLoading.style.display = 'none';
+                elements.performanceError.style.display = 'block';
+                elements.performanceError.textContent = `Error: ${err.message}`;
+            }
+        }
+        
+        // Populate performance tables
+        function populatePerformanceTables(data, elements) {
+            // Clear existing data
+            elements.topPerformersBody.innerHTML = '';
+            elements.worstPerformersBody.innerHTML = '';
+            
+            // Populate top performers
+            data.top_performers.forEach(stock => {
+                const row = document.createElement('tr');
+                
+                // Symbol
+                const symbolCell = document.createElement('td');
+                symbolCell.className = 'symbol-cell';
+                symbolCell.textContent = stock.symbol.replace('.NS', '');
+                row.appendChild(symbolCell);
+                
+                // Company name
+                const nameCell = document.createElement('td');
+                nameCell.textContent = stock.company_name || 'N/A';
+                row.appendChild(nameCell);
+                
+                // Current price
+                const currentPriceCell = document.createElement('td');
+                currentPriceCell.textContent = `₹${stock.current_price}`;
+                row.appendChild(currentPriceCell);
+                
+                // Year ago price
+                const yearAgoPriceCell = document.createElement('td');
+                yearAgoPriceCell.textContent = `₹${stock.year_ago_price}`;
+                row.appendChild(yearAgoPriceCell);
+                
+                // Percent change
+                const changeCell = document.createElement('td');
+                const changeValue = stock.percent_change;
+                const changeText = `${changeValue > 0 ? '+' : ''}${changeValue}%`;
+                changeCell.textContent = changeText;
+                changeCell.className = changeValue >= 0 ? 'change-positive' : 'change-negative';
+                row.appendChild(changeCell);
+                
+                elements.topPerformersBody.appendChild(row);
+            });
+            
+            // Populate worst performers
+            data.worst_performers.forEach(stock => {
+                const row = document.createElement('tr');
+                
+                // Symbol
+                const symbolCell = document.createElement('td');
+                symbolCell.className = 'symbol-cell';
+                symbolCell.textContent = stock.symbol.replace('.NS', '');
+                row.appendChild(symbolCell);
+                
+                // Company name
+                const nameCell = document.createElement('td');
+                nameCell.textContent = stock.company_name || 'N/A';
+                row.appendChild(nameCell);
+                
+                // Current price
+                const currentPriceCell = document.createElement('td');
+                currentPriceCell.textContent = `₹${stock.current_price}`;
+                row.appendChild(currentPriceCell);
+                
+                // Year ago price
+                const yearAgoPriceCell = document.createElement('td');
+                yearAgoPriceCell.textContent = `₹${stock.year_ago_price}`;
+                row.appendChild(yearAgoPriceCell);
+                
+                // Percent change
+                const changeCell = document.createElement('td');
+                const changeValue = stock.percent_change;
+                const changeText = `${changeValue > 0 ? '+' : ''}${changeValue}%`;
+                changeCell.textContent = changeText;
+                changeCell.className = changeValue >= 0 ? 'change-positive' : 'change-negative';
+                row.appendChild(changeCell);
+                
+                elements.worstPerformersBody.appendChild(row);
+            });
+        }
+        
+        // Switch between top and worst performers tabs
+        function switchPerformanceTab(tab, elements) {
+            if (tab === 'top') {
+                elements.topPerformersTab.classList.add('active');
+                elements.worstPerformersTab.classList.remove('active');
+                elements.topPerformersContent.style.display = 'block';
+                elements.worstPerformersContent.style.display = 'none';
+            } else {
+                elements.topPerformersTab.classList.remove('active');
+                elements.worstPerformersTab.classList.add('active');
+                elements.topPerformersContent.style.display = 'none';
+                elements.worstPerformersContent.style.display = 'block';
+            }
+        }
+        
+        // Hide performance section
+        function hidePerformanceSection(elements) {
+            elements.performanceSection.style.display = 'none';
+        }
+        
+        // Event Handlers
+        function handleSectorChange(e, elements) {
+            state.selectedSector = e.target.value;
+            state.selectedIndustry = ''; // Reset industry when sector changes
+            state.pagination.page = 1; // Reset to first page
+            
+            // Fetch industries for the selected sector
+            fetchIndustries(state.selectedSector, elements);
+            
+            // Fetch companies with the new filter
+            fetchCompanies(state.selectedSector, state.selectedIndustry, state.pagination.page, state.pagination.limit, elements);
+        }
+        
+        function handleIndustryChange(e, elements) {
+            state.selectedIndustry = e.target.value;
+            state.pagination.page = 1; // Reset to first page
+            
+            // Fetch companies with the new filter
+            fetchCompanies(state.selectedSector, state.selectedIndustry, state.pagination.page, state.pagination.limit, elements);
+        }
+        
+        function handleSearchInput(e, elements) {
+            state.searchQuery = e.target.value;
+            
+            // Show/hide clear button
+            if (state.searchQuery) {
+                elements.clearSearchBtn.style.display = 'block';
+            } else {
+                elements.clearSearchBtn.style.display = 'none';
+            }
+            
+            // If search is cleared, reset to filtered view
+            if (state.searchQuery.length < 2) {
+                fetchCompanies(state.selectedSector, state.selectedIndustry, 1, state.pagination.limit, elements);
+            }
+        }
+        
+        function handleSearchKeydown(e, elements) {
+            if (e.key === 'Enter' && state.searchQuery.length >= 2) {
+                searchCompanies(state.searchQuery, elements);
+            }
+        }
+        
+        function clearSearch(elements) {
+            state.searchQuery = '';
+            elements.searchInput.value = '';
+            elements.clearSearchBtn.style.display = 'none';
+            
+            // Reset to filtered view
+            fetchCompanies(state.selectedSector, state.selectedIndustry, 1, state.pagination.limit, elements);
+        }
+        
+        function clearFilters(elements) {
+            state.selectedSector = '';
+            state.selectedIndustry = '';
+            state.searchQuery = '';
+            state.pagination.page = 1;
+            
+            // Reset UI
+            elements.sectorSelect.value = '';
+            elements.industrySelect.value = '';
+            elements.industrySelect.disabled = true;
+            elements.searchInput.value = '';
+            elements.clearSearchBtn.style.display = 'none';
+            
+            // Fetch all industries
+            fetchIndustries('', elements);
+            
+            // Fetch companies without filters
+            fetchCompanies('', '', 1, state.pagination.limit, elements);
+        }
+        
+        function handlePageChange(page, elements) {
+            if (page > 0 && page <= state.pagination.pages) {
+                state.pagination.page = page;
+                fetchCompanies(state.selectedSector, state.selectedIndustry, page, state.pagination.limit, elements);
+            }
+        }
+        
+        // Format market cap value in crores only
+        function formatMarketCap(value) {
+            if (!value) return 'N/A';
+            
+            // Convert to crores
+            const marketCapInCrores = value / 1e7;
+            return marketCapInCrores.toFixed(2);
+        }
+        
+        function handleIndustryChange(e, elements) {
+            state.selectedIndustry = e.target.value;
+            state.pagination.page = 1; // Reset to first page
+            
+            // Fetch companies with the new filter
+            fetchCompanies(state.selectedSector, state.selectedIndustry, state.pagination.page, state.pagination.limit, elements);
+        }
+        
+        function handleSearchInput(e, elements) {
+            state.searchQuery = e.target.value;
+            
+            // Show/hide clear button
+            if (state.searchQuery) {
+                elements.clearSearchBtn.style.display = 'block';
+            } else {
+                elements.clearSearchBtn.style.display = 'none';
+            }
+            
+            // If search is cleared, reset to filtered view
+            if (state.searchQuery.length < 2) {
+                fetchCompanies(state.selectedSector, state.selectedIndustry, 1, state.pagination.limit, elements);
+            }
+        }
+        
+        function handleSearchKeydown(e, elements) {
+            if (e.key === 'Enter' && state.searchQuery.length >= 2) {
+                searchCompanies(state.searchQuery, elements);
+            }
+        }
+        
+        function clearSearch(elements) {
+            state.searchQuery = '';
+            elements.searchInput.value = '';
+            elements.clearSearchBtn.style.display = 'none';
+            
+            // Reset to filtered view
+            fetchCompanies(state.selectedSector, state.selectedIndustry, 1, state.pagination.limit, elements);
+        }
+        
+        function clearFilters(elements) {
+            state.selectedSector = '';
+            state.selectedIndustry = '';
+            state.searchQuery = '';
+            state.pagination.page = 1;
+            
+            // Reset UI
+            elements.sectorSelect.value = '';
+            elements.industrySelect.value = '';
+            elements.industrySelect.disabled = true;
+            elements.searchInput.value = '';
+            elements.clearSearchBtn.style.display = 'none';
+            
+            // Fetch all industries
+            fetchIndustries('', elements);
+            
+            // Fetch companies without filters
+            fetchCompanies('', '', 1, state.pagination.limit, elements);
+        }
+        
+        function handlePageChange(page, elements) {
+            if (page > 0 && page <= state.pagination.pages) {
+                state.pagination.page = page;
+                fetchCompanies(state.selectedSector, state.selectedIndustry, page, state.pagination.limit, elements);
+            }
+        }
+    </script>
+</body>
+</html>
