@@ -722,7 +722,7 @@
                 
                 <div class="filter-group" style="display: flex; align-items: flex-end;">
                     <button id="show-index-btn" class="action-button" style="background-color: #f59e0b;">
-                        Sector/Industry Index
+                        Sector-Industry Index
                     </button>
                 </div>
             </div>
@@ -865,27 +865,17 @@
         <div class="index-section" id="index-section">
             <div class="index-header">
                 <div class="index-title-area">
-                    <h3>Equiweighted Index</h3>
-                    <div class="index-subtitle" id="index-subtitle">Select an index type and name to view</div>
+                    <h3>Sector-Industry Equiweighted Index</h3>
+                    <div class="index-subtitle" id="index-subtitle">Select a sector-industry combination to view performance</div>
                 </div>
                 <button type="button" class="index-close" id="index-close-btn">×</button>
             </div>
             
             <div class="index-selector">
                 <div class="filter-group">
-                    <label for="index-type-select">Index Type</label>
-                    <select id="index-type-select">
-                        <option value="">Select Type</option>
-                        <option value="sector">Sector</option>
-                        <option value="industry">Industry</option>
-                        <option value="sector_industry">Sector-Industry</option>
-                    </select>
-                </div>
-                
-                <div class="filter-group">
-                    <label for="index-name-select">Index Name</label>
-                    <select id="index-name-select" disabled>
-                        <option value="">Select Index</option>
+                    <label for="index-name-select">Sector-Industry Index</label>
+                    <select id="index-name-select">
+                        <option value="">Select a Sector-Industry combination...</option>
                         <!-- Index names will be loaded dynamically -->
                     </select>
                 </div>
@@ -937,7 +927,8 @@
                 currentSymbol: null,
                 loading: false,
                 error: null
-            }
+            },
+            indexChart: null
         };
         
         // Initialize the application
@@ -967,6 +958,7 @@
                 stockSelect: document.getElementById('stock-select'),
                 showChartBtn: document.getElementById('show-chart-btn'),
                 showPerformanceBtn: document.getElementById('show-performance-btn'),
+                showIndexBtn: document.getElementById('show-index-btn'),
                 
                 // Results elements
                 resultsTitle: document.getElementById('results-title'),
@@ -999,16 +991,26 @@
                 worstPerformersContent: document.getElementById('worst-performers-content'),
                 topPerformersBody: document.getElementById('top-performers-body'),
                 worstPerformersBody: document.getElementById('worst-performers-body'),
-                performanceCloseBtn: document.getElementById('performance-close-btn')
+                performanceCloseBtn: document.getElementById('performance-close-btn'),
+                
+                // Index elements
+                indexSection: document.getElementById('index-section'),
+                indexSubtitle: document.getElementById('index-subtitle'),
+                indexNameSelect: document.getElementById('index-name-select'),
+                indexCanvas: document.getElementById('index-canvas'),
+                indexLoading: document.getElementById('index-loading'),
+                indexError: document.getElementById('index-error'),
+                indexCloseBtn: document.getElementById('index-close-btn')
             };
             
             console.log('Elements loaded:', elements);
             
             // Check if required elements exist
             const requiredElements = [
-                'sectorSelect', 'industrySelect', 'stockSelect', 'showChartBtn',
+                'sectorSelect', 'industrySelect', 'stockSelect', 'showChartBtn', 'showIndexBtn',
                 'priceChartSection', 'chartTitle', 'chartCanvas',
-                'performanceSection', 'topPerformersTab', 'worstPerformersTab'
+                'performanceSection', 'topPerformersTab', 'worstPerformersTab',
+                'indexSection', 'indexNameSelect', 'indexCanvas'
             ];
             
             for (const element of requiredElements) {
@@ -1033,6 +1035,11 @@
             elements.topPerformersTab.addEventListener('click', () => switchPerformanceTab('top', elements));
             elements.worstPerformersTab.addEventListener('click', () => switchPerformanceTab('worst', elements));
             
+            // Index event listeners
+            elements.showIndexBtn.addEventListener('click', () => showIndexSection(elements));
+            elements.indexCloseBtn.addEventListener('click', () => hideIndexSection(elements));
+            elements.indexNameSelect.addEventListener('change', () => handleIndexNameChange(elements));
+            
             // Set current year in footer
             document.getElementById('current-year').textContent = new Date().getFullYear();
             
@@ -1041,6 +1048,255 @@
             fetchStats(elements);
             fetchCompanies(state.selectedSector, state.selectedIndustry, state.pagination.page, state.pagination.limit, elements);
         }
+        
+        // INDEX FUNCTIONALITY
+        
+        // Show index section
+        function showIndexSection(elements) {
+            console.log('Showing index section');
+            elements.indexSection.style.display = 'block';
+            elements.indexSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            // Fetch index names if not already fetched
+            if (elements.indexNameSelect.options.length <= 1) {
+                fetchIndexNames(elements);
+            }
+        }
+        
+        // Hide index section
+        function hideIndexSection(elements) {
+            console.log('Hiding index section');
+            elements.indexSection.style.display = 'none';
+            
+            // Destroy existing chart if any
+            if (state.indexChart) {
+                state.indexChart.destroy();
+                state.indexChart = null;
+            }
+        }
+        
+        // Fetch sector-industry index names directly
+        async function fetchIndexNames(elements) {
+            try {
+                console.log('Fetching sector-industry index names...');
+                elements.indexLoading.style.display = 'flex';
+                elements.indexError.style.display = 'none';
+                
+                const response = await fetch(`${API_BASE_URL}/indices/names`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Index names response:', data);
+                
+                if (data.success && data.data.length > 0) {
+                    // Clear and add names to the select
+                    elements.indexNameSelect.innerHTML = '<option value="">Select a Sector-Industry combination...</option>';
+                    
+                    data.data.forEach(index => {
+                        const option = document.createElement('option');
+                        option.value = index.index_name;
+                        option.textContent = formatIndexName(index.index_name);
+                        option.dataset.count = index.constituent_count;
+                        elements.indexNameSelect.appendChild(option);
+                    });
+                    
+                    console.log(`Loaded ${data.data.length} sector-industry index names`);
+                } else {
+                    throw new Error(data.error || 'No sector-industry indices found');
+                }
+            } catch (err) {
+                console.error('Error fetching index names:', err);
+                elements.indexError.textContent = `Error: ${err.message}`;
+                elements.indexError.style.display = 'block';
+            } finally {
+                elements.indexLoading.style.display = 'none';
+            }
+        }
+        
+        // Handle index name change
+        async function handleIndexNameChange(elements) {
+            const indexName = elements.indexNameSelect.value;
+            console.log('Index name changed to:', indexName);
+            
+            if (!indexName) {
+                // Clear any existing chart
+                if (state.indexChart) {
+                    state.indexChart.destroy();
+                    state.indexChart = null;
+                }
+                return;
+            }
+            
+            // Get the selected option to access its dataset
+            const selectedOption = elements.indexNameSelect.options[elements.indexNameSelect.selectedIndex];
+            const constituentCount = selectedOption.dataset.count;
+            
+            // Update subtitle
+            elements.indexSubtitle.textContent = `${formatIndexName(indexName)} - ${constituentCount} constituents`;
+            
+            // Fetch index data
+            await fetchIndexData(indexName, elements);
+        }
+        
+        // Fetch index data
+        async function fetchIndexData(indexName, elements) {
+            try {
+                console.log('Fetching index data for:', indexName);
+                elements.indexLoading.style.display = 'flex';
+                elements.indexError.style.display = 'none';
+                
+                // Clear any existing chart
+                if (state.indexChart) {
+                    state.indexChart.destroy();
+                    state.indexChart = null;
+                }
+                
+                const response = await fetch(`${API_BASE_URL}/indices/data?name=${encodeURIComponent(indexName)}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Index data response:', data);
+                
+                if (data.success && data.data.length > 0) {
+                    // Render the chart
+                    renderIndexChart(data.data, elements);
+                    console.log('Index chart rendered successfully');
+                } else {
+                    throw new Error(data.error || 'No data found for this index');
+                }
+            } catch (err) {
+                console.error('Error fetching index data:', err);
+                elements.indexError.textContent = `Error: ${err.message}`;
+                elements.indexError.style.display = 'block';
+            } finally {
+                elements.indexLoading.style.display = 'none';
+            }
+        }
+        
+        // Render index chart
+        function renderIndexChart(indexData, elements) {
+            console.log('Rendering index chart with data:', indexData);
+            
+            // Sort data by time
+            indexData.sort((a, b) => new Date(a.time) - new Date(b.time));
+            
+            // Prepare data for the chart - format dates as strings
+            const dates = indexData.map(item => {
+                const date = new Date(item.time);
+                return date.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short' 
+                });
+            });
+            const values = indexData.map(item => item.index_value);
+            
+            // Reduce number of labels if there are too many data points
+            let displayDates = dates;
+            let displayValues = values;
+            
+            if (dates.length > 20) {
+                // Show every nth point to avoid overcrowding
+                const step = Math.ceil(dates.length / 20);
+                displayDates = dates.filter((_, index) => index % step === 0);
+                displayValues = values.filter((_, index) => index % step === 0);
+            }
+            
+            // Create the chart
+            const ctx = elements.indexCanvas.getContext('2d');
+            state.indexChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: displayDates,
+                    datasets: [{
+                        label: 'Index Value',
+                        data: displayValues,
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 1,
+                        pointHoverRadius: 6,
+                        pointHoverBackgroundColor: '#f59e0b',
+                        pointHoverBorderColor: '#ffffff',
+                        pointHoverBorderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    return tooltipItems[0].label;
+                                },
+                                label: function(context) {
+                                    return `Index Value: ${context.raw.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            },
+                            ticks: {
+                                maxTicksLimit: 10,
+                                maxRotation: 45
+                            }
+                        },
+                        y: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Index Value'
+                            },
+                            beginAtZero: false,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toFixed(0);
+                                }
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        }
+        
+        // Format index name for display (sector-industry specific)
+        function formatIndexName(name) {
+            // Remove SECTOR-INDUSTRY- prefix
+            if (name.startsWith('SECTOR-INDUSTRY-')) {
+                name = name.replace('SECTOR-INDUSTRY-', '');
+            }
+            
+            // Replace hyphens with ' / ' to show sector / industry
+            name = name.replace(/-/g, ' / ');
+            
+            return name;
+        }
+        
+        // REST OF THE ORIGINAL FUNCTIONS
         
         // Show stock chart for the selected stock
         function showStockChart(elements) {
@@ -1839,72 +2095,6 @@
             // Convert to crores
             const marketCapInCrores = value / 1e7;
             return marketCapInCrores.toFixed(2);
-        }
-        
-        function handleIndustryChange(e, elements) {
-            state.selectedIndustry = e.target.value;
-            state.pagination.page = 1; // Reset to first page
-            
-            // Fetch companies with the new filter
-            fetchCompanies(state.selectedSector, state.selectedIndustry, state.pagination.page, state.pagination.limit, elements);
-        }
-        
-        function handleSearchInput(e, elements) {
-            state.searchQuery = e.target.value;
-            
-            // Show/hide clear button
-            if (state.searchQuery) {
-                elements.clearSearchBtn.style.display = 'block';
-            } else {
-                elements.clearSearchBtn.style.display = 'none';
-            }
-            
-            // If search is cleared, reset to filtered view
-            if (state.searchQuery.length < 2) {
-                fetchCompanies(state.selectedSector, state.selectedIndustry, 1, state.pagination.limit, elements);
-            }
-        }
-        
-        function handleSearchKeydown(e, elements) {
-            if (e.key === 'Enter' && state.searchQuery.length >= 2) {
-                searchCompanies(state.searchQuery, elements);
-            }
-        }
-        
-        function clearSearch(elements) {
-            state.searchQuery = '';
-            elements.searchInput.value = '';
-            elements.clearSearchBtn.style.display = 'none';
-            
-            // Reset to filtered view
-            fetchCompanies(state.selectedSector, state.selectedIndustry, 1, state.pagination.limit, elements);
-        }
-        
-        function clearFilters(elements) {
-            state.selectedSector = '';
-            state.selectedIndustry = '';
-            state.searchQuery = '';
-            state.pagination.page = 1;
-            
-            // Reset UI
-            elements.sectorSelect.value = '';
-            elements.industrySelect.value = '';
-            elements.industrySelect.disabled = true;
-            elements.searchInput.value = '';
-            elements.clearSearchBtn.style.display = 'none';
-            
-            // Fetch all industries
-            fetchIndustries('', elements);
-            
-            // Fetch companies without filters
-            fetchCompanies('', '', 1, state.pagination.limit, elements);
-        }
-        
-        function handlePageChange(page, elements) {
-            if (page > 0 && page <= state.pagination.pages) {
-                state.pagination.page = page;
-                fetchCompanies(state.selectedSector, state.selectedIndustry, page, state.pagination.limit, elements);
-            }
         }
     </script>
 </body>

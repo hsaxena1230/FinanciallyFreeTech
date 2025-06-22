@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sector-Industry Indices Dashboard</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fa;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header styles */
+        header {
+            background: linear-gradient(135deg, #4338ca, #7c3aed);
+            color: white;
+            padding: 2rem 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        header p {
+            color: #c7d2fe;
+            font-size: 1.1rem;
+        }
+        
+        /* Navigation */
+        .nav-links {
+            margin-top: 1rem;
+        }
+        
+        .nav-links a {
+            color: #c7d2fe;
+            text-decoration: none;
+            margin-right: 2rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        
+        .nav-links a:hover {
+            color: white;
+        }
+        
+        /* Controls section */
+        .controls-section {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .controls-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .controls-header h2 {
+            font-size: 1.25rem;
+            color: #1f2937;
+        }
+        
+        .refresh-btn {
+            padding: 0.5rem 1rem;
+            background-color: #4338ca;
+            color: white;
+            border: none;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .refresh-btn:hover {
+            background-color: #3730a3;
+        }
+        
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .control-group label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #4b5563;
+            margin-bottom: 0.25rem;
+        }
+        
+        .control-group select,
+        .control-group input {
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+        }
+        
+        .control-group select:focus,
+        .control-group input:focus {
+            outline: none;
+            border-color: #4338ca;
+            ring: 2px solid #c7d2fe;
+        }
+        
+        /* Stats section */
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4338ca;
+        }
+        
+        .stat-card .change {
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        
+        .change.positive {
+            color: #10b981;
+        }
+        
+        .change.negative {
+            color: #ef4444;
+        }
+        
+        /* Loading and error states */
+        .loading-container {
+            padding: 3rem;
+            text-align: center;
+        }
+        
+        .loading-spinner {
+            width: 3rem;
+            height: 3rem;
+            border: 4px solid #e5e7eb;
+            border-radius: 50%;
+            border-top-color: #4338ca;
+            margin: 0 auto 1rem;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .error-container {
+            background-color: #fee2e2;
+            border: 1px solid #fecaca;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            color: #b91c1c;
+            margin: 2rem 0;
+        }
+        
+        /* Indices grid */
+        .indices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .index-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .index-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .index-header {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .index-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+        
+        .index-subtitle {
+            font-size: 0.875rem;
+            color: #6b7280;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .constituent-count {
+            background-color: #eef2ff;
+            color: #4338ca;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .index-chart-container {
+            height: 200px;
+            position: relative;
+            padding: 1rem;
+        }
+        
+        .index-chart {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .chart-loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .chart-error {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #b91c1c;
+            font-size: 0.875rem;
+            background-color: #fef2f2;
+        }
+        
+        .index-stats {
+            padding: 1rem;
+            background-color: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+            text-align: center;
+        }
+        
+        .index-stat {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .index-stat-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+        
+        .index-stat-value {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .indices-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-section {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .index-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-section {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Footer */
+        footer {
+            background-color: #1f2937;
+            color: white;
+            padding: 2rem 0;
+            margin-top: 3rem;
+            text-align: center;
+        }
+        
+        footer p {
+            margin-bottom: 0.25rem;
+        }
+        
+        footer .credit {
+            color: #9ca3af;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>📊 Sector-Industry Indices Dashboard</h1>
+            <p>Real-time performance tracking of all sector-industry combinations</p>
+            <div class="nav-links">
+                <a href="fixed-index-functionality.html">← Back to Main Explorer</a>
+                <a href="#" onclick="refreshAllData()">🔄 Refresh Data</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Controls Section -->
+        <div class="controls-section">
+            <div class="controls-header">
+                <h2>📋 Filters & Controls</h2>
+                <button class="refresh-btn" onclick="refreshAllData()">
+                    🔄 Refresh All Data
+                </button>
+            </div>
+            
+            <div class="controls-grid">
+                <div class="control-group">
+                    <label for="sector-filter">Filter by Sector</label>
+                    <select id="sector-filter">
+                        <option value="">All Sectors</option>
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="industry-filter">Filter by Industry</label>
+                    <select id="industry-filter">
+                        <option value="">All Industries</option>
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="sort-by">Sort by</label>
+                    <select id="sort-by">
+                        <option value="name">Name (A-Z)</option>
+                        <option value="performance">Performance</option>
+                        <option value="constituents">Stock Count</option>
+                        <option value="sector">Sector</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="search-indices">Search Indices</label>
+                    <input type="text" id="search-indices" placeholder="Type to search...">
+                </div>
+                
+                <div class="control-group">
+                    <label>Debug Tools</label>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button onclick="listAllIndices()" style="padding: 0.25rem 0.5rem; background: #10b981; color: white; border: none; border-radius: 0.25rem; font-size: 0.75rem;">
+                            📋 List Indices
+                        </button>
+                        <button onclick="testProblematicIndex()" style="padding: 0.25rem 0.5rem; background: #f59e0b; color: white; border: none; border-radius: 0.25rem; font-size: 0.75rem;">
+                            🧪 Test Problem
+                        </button>
+                        <button onclick="searchConsumerCyclical()" style="padding: 0.25rem 0.5rem; background: #8b5cf6; color: white; border: none; border-radius: 0.25rem; font-size: 0.75rem;">
+                            🔍 Find Consumer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="stats-section" id="summary-stats">
+            <div class="stat-card">
+                <h3>Total Indices</h3>
+                <div class="value" id="total-indices">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Sectors Covered</h3>
+                <div class="value" id="sectors-covered">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Industries Covered</h3>
+                <div class="value" id="industries-covered">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Best Performer</h3>
+                <div class="value" id="best-performer">-</div>
+                <div class="change positive" id="best-performance">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Worst Performer</h3>
+                <div class="value" id="worst-performer">-</div>
+                <div class="change negative" id="worst-performance">-</div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading-container" id="loading-container">
+            <div class="loading-spinner"></div>
+            <p id="loading-text">Loading sector-industry indices...</p>
+            <p id="loading-progress" style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem;"></p>
+        </div>
+
+        <!-- Error State -->
+        <div class="error-container" id="error-container" style="display: none;">
+            <h3>⚠️ Error Loading Data</h3>
+            <p id="error-message">Unable to load indices data</p>
+            <div style="margin-top: 1rem;">
+                <button class="refresh-btn" onclick="refreshAllData()">
+                    🔄 Try Again
+                </button>
+                <button class="refresh-btn" onclick="generateIndices()" style="margin-left: 1rem; background-color: #10b981;">
+                    🏗️ Generate Indices
+                </button>
+                <button class="refresh-btn" onclick="showDebugInfo()" style="margin-left: 1rem; background-color: #f59e0b;">
+                    🔍 Debug Info
+                </button>
+            </div>
+        </div>
+
+        <!-- No Data State -->
+        <div class="error-container" id="no-data-container" style="display: none;">
+            <h3>📊 No Indices Found</h3>
+            <p>It looks like no sector-industry indices have been generated yet.</p>
+            <div style="margin-top: 1rem;">
+                <h4>To get started:</h4>
+                <ol style="text-align: left; margin: 1rem 0;">
+                    <li><strong>Make sure you have stock data:</strong> Run the main data fetcher first</li>
+                    <li><strong>Generate indices:</strong> Click the button below to create sector-industry indices</li>
+                    <li><strong>Wait for processing:</strong> This may take a few minutes</li>
+                </ol>
+                <button class="refresh-btn" onclick="generateIndices()" style="background-color: #10b981;">
+                    🏗️ Generate Sector-Industry Indices
+                </button>
+                <button class="refresh-btn" onclick="checkStatus()" style="margin-left: 1rem;">
+                    🔍 Check Status
+                </button>
+            </div>
+        </div>
+
+        <!-- Debug Info Modal -->
+        <div id="debug-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 2rem; border-radius: 0.5rem; max-width: 80%; max-height: 80%; overflow: auto;">
+                <h3>🔍 Debug Information</h3>
+                <div id="debug-content"></div>
+                <button onclick="closeDebugModal()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #4338ca; color: white; border: none; border-radius: 0.25rem;">Close</button>
+            </div>
+        </div>
+
+        <!-- Indices Grid -->
+        <div class="indices-grid" id="indices-grid">
+            <!-- Index cards will be populated dynamically -->
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; <span id="current-year">2025</span> FinanciallyFreeTech</p>
+            <p class="credit">Sector-Industry Indices Dashboard - Powered by TimescaleDB</p>
+        </div>
+    </footer>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:5000/api';
+        
+        // State management
+        let state = {
+            allIndices: [],
+            filteredIndices: [],
+            charts: {},
+            loading: false,
+            error: null,
+            filters: {
+                sector: '',
+                industry: '',
+                search: '',
+                sortBy: 'name'
+            }
+        };
+        
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Dashboard loaded');
+            
+            // Add Chart.js
+            const chartScript = document.createElement('script');
+            chartScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js';
+            chartScript.onload = function() {
+                console.log('Chart.js loaded');
+                initDashboard();
+            };
+            document.head.appendChild(chartScript);
+        });
+        
+        // Initialize dashboard
+        async function initDashboard() {
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Set current year
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+            
+            // Load initial data
+            await loadAllIndices();
+        }
+        
+        // Set up event listeners
+        function setupEventListeners() {
+            document.getElementById('sector-filter').addEventListener('change', applyFilters);
+            document.getElementById('industry-filter').addEventListener('change', applyFilters);
+            document.getElementById('sort-by').addEventListener('change', applyFilters);
+            
+            // Enhanced search with debouncing and immediate feedback
+            const searchInput = document.getElementById('search-indices');
+            let searchTimeout;
+            
+            searchInput.addEventListener('input', (e) => {
+                // Clear previous timeout
+                if (searchTimeout) {
+                    clearTimeout(searchTimeout);
+                }
+                
+                // Immediate filter application for responsiveness
+                applyFiltersImmediate();
+                
+                // Debounced chart loading to prevent excessive API calls
+                searchTimeout = setTimeout(() => {
+                    if (state.filteredIndices.length <= 20) {
+                        loadChartsData();
+                    }
+                }, 1000); // Wait 1 second after user stops typing
+            });
+        }
+        
+        // Immediate filter application (without chart loading)
+        function applyFiltersImmediate() {
+            // Get filter values
+            state.filters.sector = document.getElementById('sector-filter').value;
+            state.filters.industry = document.getElementById('industry-filter').value;
+            state.filters.search = document.getElementById('search-indices').value.toLowerCase().trim();
+            state.filters.sortBy = document.getElementById('sort-by').value;
+            
+            // Apply filters
+            state.filteredIndices = state.allIndices.filter(index => {
+                if (state.filters.sector && index.sector !== state.filters.sector) return false;
+                if (state.filters.industry && index.industry !== state.filters.industry) return false;
+                if (state.filters.search) {
+                    const searchTerm = state.filters.search;
+                    const searchableText = `${index.displayName} ${index.sector} ${index.industry} ${index.index_name}`.toLowerCase();
+                    if (!searchableText.includes(searchTerm)) return false;
+                }
+                return true;
+            });
+            
+            // Apply sorting
+            state.filteredIndices.sort((a, b) => {
+                switch (state.filters.sortBy) {
+                    case 'performance':
+                        return a.displayName.localeCompare(b.displayName);
+                    case 'constituents':
+                        return b.constituent_count - a.constituent_count;
+                    case 'sector':
+                        return a.sector.localeCompare(b.sector) || a.industry.localeCompare(b.industry);
+                    default:
+                        return a.displayName.localeCompare(b.displayName);
+                }
+            });
+            
+            // Re-render grid immediately
+            renderIndicesGrid();
+            
+            // Show search feedback
+            const searchInput = document.getElementById('search-indices');
+            if (state.filters.search.length >= 3) {
+                searchInput.style.borderColor = state.filteredIndices.length > 0 ? '#10b981' : '#ef4444';
+                searchInput.title = `Found ${state.filteredIndices.length} matching indices`;
+            } else {
+                searchInput.style.borderColor = '#d1d5db';
+                searchInput.title = '';
+            }
+        }
+        
+        // Load all indices data
+        async function loadAllIndices() {
+            try {
+                setLoading(true);
+                setError(null);
+                
+                console.log('Fetching all sector-industry indices...');
+                
+                // Fetch indices list
+                const response = await fetch(`${API_BASE_URL}/indices/names`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to fetch indices');
+                }
+                
+                if (!data.data || data.data.length === 0) {
+                    showNoDataState();
+                    return;
+                }
+                
+                console.log(`Loaded ${data.data.length} indices`);
+                
+                // Process indices data - preserve original index_name
+                state.allIndices = data.data.map(index => {
+                    const processedIndex = {
+                        index_name: index.index_name, // Keep original for API calls
+                        index_type: index.index_type,
+                        constituent_count: index.constituent_count,
+                        sector: extractSector(index.index_name),
+                        industry: extractIndustry(index.index_name),
+                        displayName: formatIndexName(index.index_name)
+                    };
+                    
+                    console.log(`Processed index:`, {
+                        original: index.index_name,
+                        display: processedIndex.displayName,
+                        sector: processedIndex.sector,
+                        industry: processedIndex.industry
+                    });
+                    
+                    return processedIndex;
+                });
+                
+                // Update filters
+                updateFilterOptions();
+                
+                // Apply initial filters
+                applyFilters();
+                
+                // Update summary stats
+                updateSummaryStats();
+                
+                // Load chart data for visible indices
+                await loadChartsData();
+                
+            } catch (error) {
+                console.error('Error loading indices:', error);
+                setError(error.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+        
+        // Load chart data for all visible indices
+        async function loadChartsData() {
+            // Remove the artificial 20-item limit - load all visible indices
+            const visibleIndices = state.filteredIndices; 
+            
+            console.log(`📊 Loading charts for ${visibleIndices.length} visible indices`);
+            
+            // Update loading text
+            updateLoadingProgress(`Loading charts for ${visibleIndices.length} indices...`, 0, visibleIndices.length);
+            
+            // Load charts in batches to prevent overwhelming the server
+            const batchSize = 5; // Load 5 charts at a time
+            let loadedCount = 0;
+            
+            for (let i = 0; i < visibleIndices.length; i += batchSize) {
+                const batch = visibleIndices.slice(i, i + batchSize);
+                
+                console.log(`📦 Loading batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(visibleIndices.length/batchSize)} (indices ${i + 1}-${Math.min(i + batchSize, visibleIndices.length)})`);
+                
+                // Update progress
+                updateLoadingProgress(`Loading charts...`, loadedCount, visibleIndices.length);
+                
+                // Load this batch of charts concurrently
+                const batchPromises = batch.map(async (index) => {
+                    await loadSingleChart(index);
+                    loadedCount++;
+                    updateLoadingProgress(`Loading charts...`, loadedCount, visibleIndices.length);
+                });
+                await Promise.all(batchPromises);
+                
+                // Small delay between batches to prevent overwhelming the server
+                if (i + batchSize < visibleIndices.length) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+            }
+            
+            console.log(`✅ Completed loading all ${visibleIndices.length} charts`);
+        }
+        
+        // Update loading progress
+        function updateLoadingProgress(message, current, total) {
+            const loadingText = document.getElementById('loading-text');
+            const loadingProgress = document.getElementById('loading-progress');
+            
+            if (loadingText) {
+                loadingText.textContent = message;
+            }
+            
+            if (loadingProgress && total > 0) {
+                const percentage = Math.round((current / total) * 100);
+                loadingProgress.textContent = `${current}/${total} charts loaded (${percentage}%)`;
+            }
+        }
+        
+        // Load data for a single chart
+        async function loadSingleChart(index) {
+            const canvasId = `chart-${index.index_name.replace(/[^a-zA-Z0-9]/g, '-')}`;
+            
+            try {
+                console.log(`Loading chart data for: "${index.index_name}"`);
+                console.log(`Display name: "${index.displayName}"`);
+                console.log(`Canvas ID: "${canvasId}"`);
+                
+                // Ensure we're using the original index name, not the display name
+                const originalIndexName = index.index_name;
+                console.log(`Original index name for API call: "${originalIndexName}"`);
+                
+                // Build the URL with proper encoding
+                const encodedName = encodeURIComponent(originalIndexName);
+                console.log(`Encoded name: "${encodedName}"`);
+                
+                const apiUrl = `${API_BASE_URL}/indices/data?name=${encodedName}`;
+                console.log(`Full API URL: ${apiUrl}`);
+                
+                const response = await fetch(apiUrl);
+                
+                console.log(`Response for ${originalIndexName}:`, {
+                    status: response.status,
+                    statusText: response.statusText,
+                    ok: response.ok,
+                    url: response.url
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error(`HTTP error for ${originalIndexName}:`, {
+                        status: response.status,
+                        statusText: response.statusText,
+                        errorText: errorText
+                    });
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
+                const data = await response.json();
+                console.log(`Data response for ${originalIndexName}:`, {
+                    success: data.success,
+                    dataLength: data.data ? data.data.length : 0,
+                    error: data.error
+                });
+                
+                if (data.success && data.data && data.data.length > 0) {
+                    console.log(`✅ Rendering chart for ${originalIndexName} with ${data.data.length} data points`);
+                    renderChart(index, data.data);
+                    updateIndexStats(index, data.data);
+                } else {
+                    console.warn(`⚠️ No data for ${originalIndexName}:`, data);
+                    showChartError(index, data.error || 'No data available for this index');
+                }
+                
+            } catch (error) {
+                console.error(`❌ Error loading chart for ${index.index_name}:`, error);
+                showChartError(index, `Error: ${error.message}`);
+            }
+        }
+        
+        // Render a single index chart
+        function renderChart(index, chartData) {
+            const canvasId = `chart-${index.index_name.replace(/[^a-zA-Z0-9]/g, '-')}`;
+            const canvas = document.getElementById(canvasId);
+            
+            if (!canvas) {
+                console.error(`Canvas not found for ${index.index_name}`);
+                return;
+            }
+            
+            // Sort data by time
+            chartData.sort((a, b) => new Date(a.time) - new Date(b.time));
+            
+            // Prepare chart data - sample if too many points
+            let displayData = chartData;
+            if (chartData.length > 30) {
+                const step = Math.ceil(chartData.length / 30);
+                displayData = chartData.filter((_, i) => i % step === 0);
+            }
+            
+            const dates = displayData.map(item => {
+                const date = new Date(item.time);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            });
+            const values = displayData.map(item => item.index_value);
+            
+            // Destroy existing chart if any
+            if (state.charts[index.index_name]) {
+                state.charts[index.index_name].destroy();
+            }
+            
+            // Create new chart
+            const ctx = canvas.getContext('2d');
+            state.charts[index.index_name] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        data: values,
+                        borderColor: '#4338ca',
+                        backgroundColor: 'rgba(67, 56, 202, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    return tooltipItems[0].label;
+                                },
+                                label: function(context) {
+                                    return `Index: ${context.raw.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                maxTicksLimit: 5,
+                                maxRotation: 45,
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        },
+                        y: {
+                            display: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            ticks: {
+                                maxTicksLimit: 4,
+                                font: {
+                                    size: 10
+                                },
+                                callback: function(value) {
+                                    return value.toFixed(0);
+                                }
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+            
+            // Hide loading spinner
+            const loadingEl = document.querySelector(`#card-${canvasId} .chart-loading`);
+            if (loadingEl) {
+                loadingEl.style.display = 'none';
+            }
+        }
+        
+        // Show chart error
+        function showChartError(index, errorMessage) {
+            const canvasId = `chart-${index.index_name.replace(/[^a-zA-Z0-9]/g, '-')}`;
+            const loadingEl = document.querySelector(`#card-${canvasId} .chart-loading`);
+            const errorEl = document.querySelector(`#card-${canvasId} .chart-error`);
+            
+            if (loadingEl) loadingEl.style.display = 'none';
+            if (errorEl) {
+                errorEl.style.display = 'flex';
+                errorEl.innerHTML = `
+                    <div style="text-align: center;">
+                        <div style="margin-bottom: 0.5rem; color: #b91c1c;">${errorMessage}</div>
+                        <button onclick="retryChart('${index.index_name}')" 
+                                style="padding: 0.25rem 0.5rem; background: #4338ca; color: white; border: none; border-radius: 0.25rem; font-size: 0.75rem; cursor: pointer;">
+                            🔄 Retry
+                        </button>
+                    </div>
+                `;
+            }
+        }
+        
+        // Retry loading a specific chart
+        async function retryChart(indexName) {
+            console.log(`🔄 Retrying chart for: ${indexName}`);
+            
+            const index = state.allIndices.find(idx => idx.index_name === indexName);
+            if (index) {
+                // Show loading state again
+                const canvasId = `chart-${index.index_name.replace(/[^a-zA-Z0-9]/g, '-')}`;
+                const loadingEl = document.querySelector(`#card-${canvasId} .chart-loading`);
+                const errorEl = document.querySelector(`#card-${canvasId} .chart-error`);
+                
+                if (loadingEl) loadingEl.style.display = 'flex';
+                if (errorEl) errorEl.style.display = 'none';
+                
+                // Retry loading
+                await loadSingleChart(index);
+            } else {
+                console.error(`Index not found: ${indexName}`);
+            }
+        }
+        
+        // Update index statistics
+        function updateIndexStats(index, chartData) {
+            if (chartData.length < 2) return;
+            
+            const latest = chartData[chartData.length - 1];
+            const previous = chartData[chartData.length - 2];
+            const first = chartData[0];
+            
+            const currentValue = latest.index_value;
+            const change = ((currentValue - previous.index_value) / previous.index_value * 100);
+            const totalReturn = ((currentValue - first.index_value) / first.index_value * 100);
+            
+            const cardId = `card-chart-${index.index_name.replace(/[^a-zA-Z0-9]/g, '-')}`;
+            const card = document.getElementById(cardId);
+            
+            if (card) {
+                const currentEl = card.querySelector('.current-value');
+                const changeEl = card.querySelector('.daily-change');
+                const returnEl = card.querySelector('.total-return');
+                
+                if (currentEl) currentEl.textContent = currentValue.toFixed(2);
+                if (changeEl) {
+                    changeEl.textContent = `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
+                    changeEl.className = `index-stat-value ${change >= 0 ? 'positive' : 'negative'}`;
+                }
+                if (returnEl) {
+                    returnEl.textContent = `${totalReturn >= 0 ? '+' : ''}${totalReturn.toFixed(2)}%`;
+                    returnEl.className = `index-stat-value ${totalReturn >= 0 ? 'positive' : 'negative'}`;
+                }
+            }
+        }
+        
+        // Render indices grid
+        function renderIndicesGrid() {
+            const grid = document.getElementById('indices-grid');
+            grid.innerHTML = '';
+            
+            if (state.filteredIndices.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #6b7280;">
+                        <h3>No indices found</h3>
+                        <p>Try adjusting your filters or search terms.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            state.filteredIndices.forEach(index => {
+                const card = createIndexCard(index);
+                grid.appendChild(card);
+            });
+        }
+        
+        // Create individual index card
+        function createIndexCard(index) {
+            const canvasId = `chart-${index.index_name.replace(/[^a-zA-Z0-9]/g, '-')}`;
+            const cardId = `card-${canvasId}`;
+            
+            const card = document.createElement('div');
+            card.className = 'index-card';
+            card.id = cardId;
+            
+            card.innerHTML = `
+                <div class="index-header">
+                    <div class="index-title">${index.displayName}</div>
+                    <div class="index-subtitle">
+                        <span>${index.sector} / ${index.industry}</span>
+                        <span class="constituent-count">${index.constituent_count} stocks</span>
+                    </div>
+                </div>
+                
+                <div class="index-chart-container">
+                    <canvas id="${canvasId}" class="index-chart"></canvas>
+                    <div class="chart-loading">
+                        <div class="loading-spinner" style="width: 1.5rem; height: 1.5rem; border-width: 2px;"></div>
+                    </div>
+                    <div class="chart-error" style="display: none;">
+                        Loading failed
+                    </div>
+                </div>
+                
+                <div class="index-stats">
+                    <div class="index-stat">
+                        <div class="index-stat-label">Current</div>
+                        <div class="index-stat-value current-value">-</div>
+                    </div>
+                    <div class="index-stat">
+                        <div class="index-stat-label">Daily</div>
+                        <div class="index-stat-value daily-change">-</div>
+                    </div>
+                    <div class="index-stat">
+                        <div class="index-stat-label">Total</div>
+                        <div class="index-stat-value total-return">-</div>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+        
+            // Apply filters and re-render grid immediately
+            applyFilters();
+            
+            // If search term is specific, automatically load charts for matching results
+            if (state.filters.search.length >= 3) {
+                console.log(`🔍 Searching for: "${state.filters.search}" - found ${state.filteredIndices.length} matches`);
+                
+                // If only a few results, load their charts immediately
+                if (state.filteredIndices.length <= 10) {
+                    setTimeout(() => {
+                        console.log(`⚡ Auto-loading charts for search results`);
+                        loadChartsData();
+                    }, 500);
+                }
+            }
+        }
+
+        // Enhanced apply filters function
+        function applyFilters() {
+            // Get filter values
+            state.filters.sector = document.getElementById('sector-filter').value;
+            state.filters.industry = document.getElementById('industry-filter').value;
+            state.filters.search = document.getElementById('search-indices').value.toLowerCase().trim();
+            state.filters.sortBy = document.getElementById('sort-by').value;
+            
+            console.log(`🔍 Applying filters:`, state.filters);
+            
+            // Apply filters
+            state.filteredIndices = state.allIndices.filter(index => {
+                if (state.filters.sector && index.sector !== state.filters.sector) return false;
+                if (state.filters.industry && index.industry !== state.filters.industry) return false;
+                if (state.filters.search) {
+                    const searchTerm = state.filters.search;
+                    const searchableText = `${index.displayName} ${index.sector} ${index.industry} ${index.index_name}`.toLowerCase();
+                    if (!searchableText.includes(searchTerm)) return false;
+                }
+                return true;
+            });
+            
+            console.log(`📊 Filtered to ${state.filteredIndices.length} indices`);
+            
+            // Apply sorting
+            state.filteredIndices.sort((a, b) => {
+                switch (state.filters.sortBy) {
+                    case 'performance':
+                        // Would need performance data - for now sort by name
+                        return a.displayName.localeCompare(b.displayName);
+                    case 'constituents':
+                        return b.constituent_count - a.constituent_count;
+                    case 'sector':
+                        return a.sector.localeCompare(b.sector) || a.industry.localeCompare(b.industry);
+                    default:
+                        return a.displayName.localeCompare(b.displayName);
+                }
+            });
+            
+            // Re-render grid
+            renderIndicesGrid();
+            
+            // Load charts for newly visible indices (but not during search typing)
+            if (!state.loading && state.filteredIndices.length <= 50) {
+                setTimeout(() => loadChartsData(), 100);
+            }
+        }
+        
+        // Update filter dropdown options
+        function updateFilterOptions() {
+            const sectors = [...new Set(state.allIndices.map(i => i.sector))].sort();
+            const industries = [...new Set(state.allIndices.map(i => i.industry))].sort();
+            
+            const sectorSelect = document.getElementById('sector-filter');
+            const industrySelect = document.getElementById('industry-filter');
+            
+            // Clear and populate sector filter
+            sectorSelect.innerHTML = '<option value="">All Sectors</option>';
+            sectors.forEach(sector => {
+                const option = document.createElement('option');
+                option.value = sector;
+                option.textContent = sector;
+                sectorSelect.appendChild(option);
+            });
+            
+            // Clear and populate industry filter
+            industrySelect.innerHTML = '<option value="">All Industries</option>';
+            industries.forEach(industry => {
+                const option = document.createElement('option');
+                option.value = industry;
+                option.textContent = industry;
+                industrySelect.appendChild(option);
+            });
+        }
+        
+        // Update summary statistics
+        function updateSummaryStats() {
+            const sectors = new Set(state.allIndices.map(i => i.sector));
+            const industries = new Set(state.allIndices.map(i => i.industry));
+            
+            document.getElementById('total-indices').textContent = state.allIndices.length;
+            document.getElementById('sectors-covered').textContent = sectors.size;
+            document.getElementById('industries-covered').textContent = industries.size;
+            
+            // Best/worst performers would need performance calculation
+            document.getElementById('best-performer').textContent = 'TBD';
+            document.getElementById('worst-performer').textContent = 'TBD';
+            document.getElementById('best-performance').textContent = '';
+            document.getElementById('worst-performance').textContent = '';
+        }
+        
+        // Utility functions
+        function extractSector(indexName) {
+            if (indexName.startsWith('SECTOR-INDUSTRY-')) {
+                const parts = indexName.replace('SECTOR-INDUSTRY-', '').split('-');
+                return parts[0] || '';
+            }
+            return '';
+        }
+        
+        function extractIndustry(indexName) {
+            if (indexName.startsWith('SECTOR-INDUSTRY-')) {
+                const parts = indexName.replace('SECTOR-INDUSTRY-', '').split('-');
+                return parts.slice(1).join('-') || '';
+            }
+            return '';
+        }
+        
+        function formatIndexName(name) {
+            if (name.startsWith('SECTOR-INDUSTRY-')) {
+                name = name.replace('SECTOR-INDUSTRY-', '');
+            }
+            return name.replace(/-/g, ' / ');
+        }
+        
+        function setLoading(loading) {
+            state.loading = loading;
+            document.getElementById('loading-container').style.display = loading ? 'block' : 'none';
+            document.getElementById('indices-grid').style.display = loading ? 'none' : 'grid';
+            document.getElementById('no-data-container').style.display = 'none';
+        }
+        
+        function setError(error) {
+            state.error = error;
+            const errorContainer = document.getElementById('error-container');
+            
+            if (error) {
+                document.getElementById('error-message').textContent = error;
+                errorContainer.style.display = 'block';
+                document.getElementById('indices-grid').style.display = 'none';
+                document.getElementById('no-data-container').style.display = 'none';
+            } else {
+                errorContainer.style.display = 'none';
+                if (!state.loading) {
+                    document.getElementById('indices-grid').style.display = 'grid';
+                }
+            }
+        }
+        
+        function showNoDataState() {
+            document.getElementById('loading-container').style.display = 'none';
+            document.getElementById('error-container').style.display = 'none';
+            document.getElementById('indices-grid').style.display = 'none';
+            document.getElementById('no-data-container').style.display = 'block';
+        }
+        
+        // Generate indices function
+        async function generateIndices() {
+            try {
+                console.log('Starting index generation...');
+                
+                const generateBtn = document.querySelector('button[onclick="generateIndices()"]');
+                const originalText = generateBtn.textContent;
+                generateBtn.textContent = '🔄 Generating...';
+                generateBtn.disabled = true;
+                
+                const response = await fetch(`${API_BASE_URL}/indices/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        start_date: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                        end_date: new Date().toISOString().split('T')[0]
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ Index generation started! This may take a few minutes. The page will refresh when complete.');
+                    
+                    // Poll for completion
+                    pollForIndices();
+                } else {
+                    throw new Error(data.error || 'Failed to start generation');
+                }
+                
+            } catch (error) {
+                console.error('Error generating indices:', error);
+                alert(`❌ Error: ${error.message}`);
+            } finally {
+                const generateBtn = document.querySelector('button[onclick="generateIndices()"]');
+                if (generateBtn) {
+                    generateBtn.textContent = '🏗️ Generate Sector-Industry Indices';
+                    generateBtn.disabled = false;
+                }
+            }
+        }
+        
+        // Poll for indices completion
+        async function pollForIndices() {
+            let attempts = 0;
+            const maxAttempts = 60; // 5 minutes with 5-second intervals
+            
+            const pollInterval = setInterval(async () => {
+                attempts++;
+                
+                try {
+                    const response = await fetch(`${API_BASE_URL}/indices/names`);
+                    const data = await response.json();
+                    
+                    if (data.success && data.data && data.data.length > 0) {
+                        clearInterval(pollInterval);
+                        console.log('Indices generation completed!');
+                        alert('🎉 Indices generated successfully! Refreshing dashboard...');
+                        window.location.reload();
+                    } else if (attempts >= maxAttempts) {
+                        clearInterval(pollInterval);
+                        alert('⏰ Generation is taking longer than expected. Please refresh manually in a few minutes.');
+                    }
+                } catch (error) {
+                    console.log('Still generating... attempt', attempts);
+                    if (attempts >= maxAttempts) {
+                        clearInterval(pollInterval);
+                        alert('⏰ Generation is taking longer than expected. Please refresh manually in a few minutes.');
+                    }
+                }
+            }, 5000); // Check every 5 seconds
+        }
+        
+        // Check status function
+        async function checkStatus() {
+            try {
+                console.log('Checking system status...');
+                
+                // Check if API is accessible
+                const apiTest = await fetch(`${API_BASE_URL}/sectors`);
+                const apiWorking = apiTest.ok;
+                
+                // Check if there are any stocks
+                const stocksResponse = await fetch(`${API_BASE_URL}/stats`);
+                const stocksData = await stocksResponse.json();
+                const hasStocks = stocksData.success && stocksData.data.overall.total_stocks > 0;
+                
+                // Check if there are any indices
+                const indicesResponse = await fetch(`${API_BASE_URL}/indices/names`);
+                const indicesData = await indicesResponse.json();
+                const hasIndices = indicesData.success && indicesData.data && indicesData.data.length > 0;
+                
+                let status = '📊 System Status Check:\n\n';
+                status += `✅ API Server: ${apiWorking ? 'Running' : '❌ Not accessible'}\n`;
+                status += `📈 Stock Data: ${hasStocks ? stocksData.data.overall.total_stocks + ' stocks loaded' : '❌ No stocks found'}\n`;
+                status += `📊 Indices: ${hasIndices ? indicesData.data.length + ' indices available' : '❌ No indices generated'}\n\n`;
+                
+                if (!hasStocks) {
+                    status += '⚠️ You need to run the stock data fetcher first:\n';
+                    status += '   python main.py --setup-stocks\n\n';
+                }
+                
+                if (hasStocks && !hasIndices) {
+                    status += '💡 Ready to generate indices! Click the "Generate" button.';
+                }
+                
+                alert(status);
+                
+            } catch (error) {
+                alert(`❌ Status check failed: ${error.message}`);
+            }
+        }
+        
+        // Test a specific index function
+        async function testSpecificIndex(indexName) {
+            try {
+                console.log(`🧪 Testing specific index: "${indexName}"`);
+                
+                // Test the API call directly
+                const encodedName = encodeURIComponent(indexName);
+                const apiUrl = `${API_BASE_URL}/indices/data?name=${encodedName}`;
+                
+                console.log(`🔗 Testing URL: ${apiUrl}`);
+                
+                const response = await fetch(apiUrl);
+                console.log(`📡 Response:`, {
+                    status: response.status,
+                    statusText: response.statusText,
+                    ok: response.ok,
+                    headers: [...response.headers.entries()]
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(`📊 Response data:`, data);
+                    return data;
+                } else {
+                    const errorText = await response.text();
+                    console.error(`❌ Error response:`, errorText);
+                    return { success: false, error: errorText };
+                }
+                
+            } catch (error) {
+                console.error(`💥 Exception testing index:`, error);
+                return { success: false, error: error.message };
+            }
+        }
+        
+        // Debug function to list all available indices
+        async function listAllIndices() {
+            try {
+                console.log(`📋 Fetching all available indices...`);
+                
+                const response = await fetch(`${API_BASE_URL}/indices/names`);
+                const data = await response.json();
+                
+                console.log(`📊 Available indices:`, data);
+                
+                if (data.success && data.data) {
+                    console.log(`📝 Index names list:`);
+                    data.data.forEach((index, i) => {
+                        console.log(`  ${i + 1}. "${index.index_name}" (${index.constituent_count} stocks)`);
+                    });
+                    
+                    // Look for the problematic one
+                    const problematic = data.data.find(idx => 
+                        idx.index_name.includes('Consumer Cyclical') || 
+                        idx.index_name.includes('Auto') ||
+                        idx.index_name.includes('Truck') ||
+                        idx.index_name.includes('Dealerships')
+                    );
+                    
+                    if (problematic) {
+                        console.log(`🎯 Found potentially problematic index:`, problematic);
+                        
+                        // Test it directly
+                        const testResult = await testSpecificIndex(problematic.index_name);
+                        console.log(`🧪 Test result:`, testResult);
+                    }
+                }
+                
+                return data;
+                
+            } catch (error) {
+                console.error(`❌ Error listing indices:`, error);
+                return null;
+            }
+        }
+        async function showDebugInfo() {
+            try {
+                let debugInfo = '<h4>🔍 Debug Information</h4>';
+                
+                // Test API endpoints
+                debugInfo += '<h5>API Endpoints:</h5><ul>';
+                
+                const endpoints = [
+                    { name: 'Sectors', url: `${API_BASE_URL}/sectors` },
+                    { name: 'Stats', url: `${API_BASE_URL}/stats` },
+                    { name: 'Index Types', url: `${API_BASE_URL}/indices/types` },
+                    { name: 'Index Names', url: `${API_BASE_URL}/indices/names` }
+                ];
+                
+                for (const endpoint of endpoints) {
+                    try {
+                        const response = await fetch(endpoint.url);
+                        const data = await response.json();
+                        debugInfo += `<li><strong>${endpoint.name}:</strong> `;
+                        if (response.ok && data.success) {
+                            debugInfo += `✅ OK (${Array.isArray(data.data) ? data.data.length + ' items' : 'Success'})`;
+                        } else {
+                            debugInfo += `❌ Error: ${data.error || 'Unknown error'}`;
+                        }
+                        debugInfo += '</li>';
+                    } catch (error) {
+                        debugInfo += `<li><strong>${endpoint.name}:</strong> ❌ Failed: ${error.message}</li>`;
+                    }
+                }
+                
+                debugInfo += '</ul>';
+                
+                // Browser info
+                debugInfo += '<h5>Browser Info:</h5><ul>';
+                debugInfo += `<li>User Agent: ${navigator.userAgent}</li>`;
+                debugInfo += `<li>Current URL: ${window.location.href}</li>`;
+                debugInfo += `<li>API Base URL: ${API_BASE_URL}</li>`;
+                debugInfo += '</ul>';
+                
+                // Console logs
+                debugInfo += '<h5>Recent Console Logs:</h5>';
+                debugInfo += '<p><em>Check browser console (F12) for detailed logs</em></p>';
+                
+                document.getElementById('debug-content').innerHTML = debugInfo;
+                document.getElementById('debug-modal').style.display = 'block';
+                
+            } catch (error) {
+                alert(`❌ Debug info failed: ${error.message}`);
+            }
+        }
+        
+        // Quick search for Consumer Cyclical indices
+        function searchConsumerCyclical() {
+            console.log('🔍 Searching for Consumer Cyclical indices...');
+            
+            // Set search term
+            const searchInput = document.getElementById('search-indices');
+            searchInput.value = 'consumer cyclical';
+            
+            // Apply filters immediately
+            applyFiltersImmediate();
+            
+            console.log(`Found ${state.filteredIndices.length} Consumer Cyclical indices:`, state.filteredIndices);
+            
+            // Auto-load charts for the filtered results
+            if (state.filteredIndices.length > 0 && state.filteredIndices.length <= 10) {
+                setTimeout(() => {
+                    console.log('🚀 Auto-loading charts for Consumer Cyclical indices...');
+                    loadChartsData();
+                }, 500);
+            }
+            
+            // Scroll to results
+            document.getElementById('indices-grid').scrollIntoView({ behavior: 'smooth' });
+            
+            // Show alert with results
+            alert(`🔍 Found ${state.filteredIndices.length} Consumer Cyclical indices. Check the filtered results below.`);
+        }
+        
+        function closeDebugModal() {
+            document.getElementById('debug-modal').style.display = 'none';
+        }
+            document.getElementById('debug-modal').style.display = 'none';
+        }
+        
+        // Global functions
+        window.refreshAllData = async function() {
+            console.log('Refreshing all data...');
+            // Clear existing charts
+            Object.values(state.charts).forEach(chart => chart.destroy());
+            state.charts = {};
+            
+            // Reload data
+            await loadAllIndices();
+        };
+        
+        // Global functions
+        window.refreshAllData = async function() {
+            console.log('Refreshing all data...');
+            // Clear existing charts
+            Object.values(state.charts).forEach(chart => chart.destroy());
+            state.charts = {};
+            
+            // Reload data
+            await loadAllIndices();
+        };
+        
+        window.generateIndices = generateIndices;
+        window.checkStatus = checkStatus;
+        window.showDebugInfo = showDebugInfo;
+        window.closeDebugModal = closeDebugModal;
+        window.listAllIndices = listAllIndices;
+        window.testSpecificIndex = testSpecificIndex;
+        window.testProblematicIndex = testProblematicIndex;
+        window.retryChart = retryChart;
+        window.searchConsumerCyclical = searchConsumerCyclical;
+        
+        // Quick search function for console debugging
+        window.findIndex = function(searchTerm) {
+            const found = state.allIndices.filter(index => 
+                index.index_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                index.displayName.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            console.log(`🔍 Found ${found.length} indices matching "${searchTerm}":`, found);
+            return found;
+        };
+        
+        // Quick search for the problematic Consumer Cyclical index
+        window.findConsumerCyclical = function() {
+            return window.findIndex('consumer');
+        };
+        
+        // Add CSS for positive/negative changes
+        const style = document.createElement('style');
+        style.textContent = `
+            .index-stat-value.positive {
+                color: #10b981;
+            }
+            .index-stat-value.negative {
+                color: #ef4444;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
