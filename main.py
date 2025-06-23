@@ -4,9 +4,6 @@ def fetch_stocks_to_file():
     config = Config()
     fetcher = IndianStockFetcher()
     
-    logger.info("🔄 Fetching NSE stocks and saving to files...")
-    logger.info(f"📁 Output file: {config.STOCKS_OUTPUT_FILE}")
-    
     # Fetch stocks
     stocks = fetcher.fetch_stocks_only()
     

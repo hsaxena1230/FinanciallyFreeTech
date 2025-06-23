@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Individual Stock Weinstein Stage Analysis</title>
+    <style>
+      /* Reset and base styles */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background-color: #f5f7fa;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 1800px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+
+      /* Header styles */
+      header {
+        background: linear-gradient(135deg, #7c2d12, #ea580c, #f97316);
+        color: white;
+        padding: 2rem 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+
+      .sector-industry-info {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: 1rem 0;
+      }
+
+      .sector-industry-info h2 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .sector-industry-info p {
+        color: #fed7aa;
+        font-size: 1rem;
+      }
+
+      .stage-legend {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+      }
+
+      .stage-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+      }
+
+      .stage-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 3px;
+      }
+
+      .stage-1 {
+        background-color: #94a3b8;
+      }
+      .stage-2 {
+        background-color: #22c55e;
+      }
+      .stage-3 {
+        background-color: #f59e0b;
+      }
+      .stage-4 {
+        background-color: #ef4444;
+      }
+
+      /* Navigation */
+      .nav-links {
+        margin-top: 1rem;
+      }
+
+      .nav-links a {
+        color: #fed7aa;
+        text-decoration: none;
+        margin-right: 2rem;
+        font-weight: 500;
+        transition: color 0.2s;
+      }
+
+      .nav-links a:hover {
+        color: white;
+      }
+
+      /* Controls section */
+      .controls-section {
+        background-color: white;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin: 2rem 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+
+      .controls-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+
+      .controls-header h2 {
+        font-size: 1.25rem;
+        color: #1f2937;
+      }
+
+      .controls-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .control-group {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .control-group label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #4b5563;
+        margin-bottom: 0.25rem;
+      }
+
+      .control-group select,
+      .control-group input {
+        padding: 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+      }
+
+      .refresh-btn {
+        padding: 0.5rem 1rem;
+        background-color: #ea580c;
+        color: white;
+        border: none;
+        border-radius: 0.375rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .refresh-btn:hover {
+        background-color: #dc2626;
+      }
+
+      /* Stage summary */
+      .stage-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .stage-summary-card {
+        background-color: white;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        border-left: 4px solid transparent;
+        text-align: center;
+      }
+
+      .stage-summary-card.stage-1 {
+        border-left-color: #94a3b8;
+      }
+      .stage-summary-card.stage-2 {
+        border-left-color: #22c55e;
+      }
+      .stage-summary-card.stage-3 {
+        border-left-color: #f59e0b;
+      }
+      .stage-summary-card.stage-4 {
+        border-left-color: #ef4444;
+      }
+
+      .stage-summary-card h3 {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .stage-summary-card .value {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+      }
+
+      .stage-summary-card.stage-1 .value {
+        color: #94a3b8;
+      }
+      .stage-summary-card.stage-2 .value {
+        color: #22c55e;
+      }
+      .stage-summary-card.stage-3 .value {
+        color: #f59e0b;
+      }
+      .stage-summary-card.stage-4 .value {
+        color: #ef4444;
+      }
+
+      .stage-description {
+        font-size: 0.75rem;
+        color: #6b7280;
+      }
+
+      /* Loading states */
+      .loading-container {
+        padding: 3rem;
+        text-align: center;
+      }
+
+      .loading-spinner {
+        width: 3rem;
+        height: 3rem;
+        border: 4px solid #e5e7eb;
+        border-radius: 50%;
+        border-top-color: #ea580c;
+        margin: 0 auto 1rem;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Stocks grid */
+      .stocks-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .stock-card {
+        background-color: white;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s, box-shadow 0.2s;
+        border-top: 4px solid transparent;
+      }
+
+      .stock-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .stock-card.stage-1 {
+        border-top-color: #94a3b8;
+      }
+      .stock-card.stage-2 {
+        border-top-color: #22c55e;
+      }
+      .stock-card.stage-3 {
+        border-top-color: #f59e0b;
+      }
+      .stock-card.stage-4 {
+        border-top-color: #ef4444;
+      }
+      .stock-card.stage-0 {
+        border-top-color: #6b7280;
+      }
+
+      .stock-header {
+        padding: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+        position: relative;
+      }
+
+      .stock-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+        padding-right: 4rem;
+      }
+
+      .stock-subtitle {
+        font-size: 0.875rem;
+        color: #6b7280;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .stage-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: white;
+        text-align: center;
+        min-width: 60px;
+      }
+
+      .stage-badge.stage-0 {
+        background-color: #6b7280;
+      }
+      .stage-badge.stage-1 {
+        background-color: #94a3b8;
+      }
+      .stage-badge.stage-2 {
+        background-color: #22c55e;
+      }
+      .stage-badge.stage-3 {
+        background-color: #f59e0b;
+      }
+      .stage-badge.stage-4 {
+        background-color: #ef4444;
+      }
+
+      .market-cap {
+        background-color: #f3f4f6;
+        color: #374151;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+
+      .stock-chart-container {
+        height: 180px;
+        position: relative;
+        padding: 1rem;
+      }
+
+      .stock-chart {
+        width: 100%;
+        height: 100%;
+      }
+
+      .chart-loading {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(255, 255, 255, 0.8);
+      }
+
+      .chart-error {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #b91c1c;
+        font-size: 0.875rem;
+        background-color: #fef2f2;
+        text-align: center;
+      }
+
+      .stock-metrics {
+        padding: 1rem;
+        background-color: #f9fafb;
+        border-top: 1px solid #e5e7eb;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        gap: 0.5rem;
+        text-align: center;
+      }
+
+      .stock-metric {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .stock-metric-label {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-bottom: 0.25rem;
+      }
+
+      .stock-metric-value {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #1f2937;
+      }
+
+      .trend-indicator {
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.75rem;
+        padding: 0.125rem 0.25rem;
+        border-radius: 0.25rem;
+        margin-left: 0.25rem;
+      }
+
+      .trend-up {
+        background-color: #dcfce7;
+        color: #166534;
+      }
+
+      .trend-down {
+        background-color: #fee2e2;
+        color: #991b1b;
+      }
+
+      .trend-sideways {
+        background-color: #fef3c7;
+        color: #92400e;
+      }
+
+      /* Stage details */
+      .stage-details {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-top: 0.5rem;
+        padding: 0 1rem 1rem;
+      }
+
+      /* Error states */
+      .error-container {
+        background-color: #fee2e2;
+        border: 1px solid #fecaca;
+        border-radius: 0.5rem;
+        padding: 2rem;
+        text-align: center;
+        color: #b91c1c;
+        margin: 2rem 0;
+      }
+
+      /* Empty state */
+      .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6b7280;
+      }
+
+      .empty-state h3 {
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .controls-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .stocks-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .stage-summary {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .stock-metrics {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .stage-legend {
+          flex-direction: column;
+        }
+
+        .stage-summary {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Footer */
+      footer {
+        background-color: #1f2937;
+        color: white;
+        padding: 2rem 0;
+        margin-top: 3rem;
+        text-align: center;
+      }
+
+      footer p {
+        margin-bottom: 0.25rem;
+      }
+
+      footer .credit {
+        color: #9ca3af;
+        font-size: 0.875rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <h1>📊 Individual Stock Analysis</h1>
+
+        <div class="sector-industry-info">
+          <h2 id="sector-industry-title">Loading...</h2>
+          <p id="sector-industry-description">
+            Weinstein 4-stage analysis for individual stocks
+          </p>
+        </div>
+
+        <div class="stage-legend">
+          <div class="stage-item">
+            <div class="stage-color stage-1"></div>
+            <span><strong>Stage 1:</strong> Accumulation/Basing</span>
+          </div>
+          <div class="stage-item">
+            <div class="stage-color stage-2"></div>
+            <span><strong>Stage 2:</strong> Advancing/Markup</span>
+          </div>
+          <div class="stage-item">
+            <div class="stage-color stage-3"></div>
+            <span><strong>Stage 3:</strong> Distribution/Topping</span>
+          </div>
+          <div class="stage-item">
+            <div class="stage-color stage-4"></div>
+            <span><strong>Stage 4:</strong> Declining/Markdown</span>
+          </div>
+        </div>
+
+        <div class="nav-links">
+          <a href="javascript:history.back()">← Back to Index Analysis</a>
+          <a href="weinstein_stage_dashboard.html">← Index Dashboard</a>
+          <a href="#" onclick="refreshStockAnalysis()">🔄 Refresh Analysis</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <!-- Controls Section -->
+      <div class="controls-section">
+        <div class="controls-header">
+          <h2>🎯 Individual Stock Filters</h2>
+          <button class="refresh-btn" onclick="refreshStockAnalysis()">
+            🔄 Refresh Analysis
+          </button>
+        </div>
+
+        <div class="controls-grid">
+          <div class="control-group">
+            <label for="stage-filter">Filter by Stage</label>
+            <select id="stage-filter">
+              <option value="">All Stages</option>
+              <option value="1">Stage 1 - Accumulation</option>
+              <option value="2">Stage 2 - Advancing</option>
+              <option value="3">Stage 3 - Distribution</option>
+              <option value="4">Stage 4 - Declining</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label for="sort-by">Sort by</label>
+            <select id="sort-by">
+              <option value="stage">Stage (1-4)</option>
+              <option value="trend_strength">Trend Strength</option>
+              <option value="performance">Performance</option>
+              <option value="market_cap">Market Cap</option>
+              <option value="symbol">Symbol (A-Z)</option>
+              <option value="company_name">Company Name</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label for="trend-filter">Trend Direction</label>
+            <select id="trend-filter">
+              <option value="">All Trends</option>
+              <option value="up">📈 Uptrend</option>
+              <option value="down">📉 Downtrend</option>
+              <option value="sideways">➡️ Sideways</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label for="search-stocks">Search Stocks</label>
+            <input
+              type="text"
+              id="search-stocks"
+              placeholder="Search by symbol or name..."
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Stage Summary -->
+      <div class="stage-summary" id="stage-summary">
+        <div class="stage-summary-card stage-1">
+          <h3>Stage 1 - Accumulation</h3>
+          <div class="value" id="stage1-count">-</div>
+          <div class="stage-description">Basing stocks</div>
+        </div>
+        <div class="stage-summary-card stage-2">
+          <h3>Stage 2 - Advancing</h3>
+          <div class="value" id="stage2-count">-</div>
+          <div class="stage-description">Uptrending stocks</div>
+        </div>
+        <div class="stage-summary-card stage-3">
+          <h3>Stage 3 - Distribution</h3>
+          <div class="value" id="stage3-count">-</div>
+          <div class="stage-description">Topping stocks</div>
+        </div>
+        <div class="stage-summary-card stage-4">
+          <h3>Stage 4 - Declining</h3>
+          <div class="value" id="stage4-count">-</div>
+          <div class="stage-description">Declining stocks</div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div class="loading-container" id="loading-container">
+        <div class="loading-spinner"></div>
+        <p id="loading-text">Analyzing individual stocks...</p>
+        <p
+          id="loading-progress"
+          style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem"
+        ></p>
+      </div>
+
+      <!-- Error State -->
+      <div class="error-container" id="error-container" style="display: none">
+        <h3>⚠️ Error Loading Stock Analysis</h3>
+        <p id="error-message">Unable to load individual stock analysis</p>
+        <div style="margin-top: 1rem">
+          <button class="refresh-btn" onclick="refreshStockAnalysis()">
+            🔄 Try Again
+          </button>
+        </div>
+      </div>
+
+      <!-- Stocks Grid -->
+      <div class="stocks-grid" id="stocks-grid">
+        <!-- Stock cards will be populated dynamically -->
+      </div>
+    </main>
+
+    <footer>
+      <div class="container">
+        <p>&copy; <span id="current-year">2025</span> FinanciallyFreeTech</p>
+        <p class="credit">
+          Individual Stock Weinstein Stage Analysis - Drill-down from
+          Sector-Industry Analysis
+        </p>
+      </div>
+    </footer>
+
+    <script>
+      // Configuration
+      const API_BASE_URL = "http://localhost:5000/api";
+
+      // State management
+      let state = {
+        sector: "",
+        industry: "",
+        indexName: "",
+        constituentCount: 0,
+        allStocks: [],
+        filteredStocks: [],
+        stockAnalysis: {},
+        charts: {},
+        loading: false,
+        error: null,
+        filters: {
+          stage: "",
+          trend: "",
+          search: "",
+          sortBy: "stage",
+        },
+      };
+
+      // Initialize the dashboard
+      document.addEventListener("DOMContentLoaded", function () {
+        console.log("Individual Stock Analysis Dashboard loaded");
+
+        // Parse URL parameters
+        parseUrlParameters();
+
+        // Add Chart.js
+        const chartScript = document.createElement("script");
+        chartScript.src =
+          "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js";
+        chartScript.onload = function () {
+          console.log("Chart.js loaded");
+          initDashboard();
+        };
+        document.head.appendChild(chartScript);
+      });
+
+      // Parse URL parameters to get sector and industry
+      function parseUrlParameters() {
+        const urlParams = new URLSearchParams(window.location.search);
+
+        state.sector = urlParams.get("sector") || "";
+        state.industry = urlParams.get("industry") || "";
+        state.indexName = urlParams.get("indexName") || "";
+        state.constituentCount =
+          parseInt(urlParams.get("constituentCount")) || 0;
+
+        console.log("URL Parameters:", state);
+
+        // Update header information
+        updateHeaderInfo();
+      }
+
+      // Update header information
+      function updateHeaderInfo() {
+        const titleEl = document.getElementById("sector-industry-title");
+        const descEl = document.getElementById("sector-industry-description");
+
+        if (state.sector && state.industry) {
+          titleEl.textContent = `${state.sector} / ${state.industry}`;
+          descEl.textContent = `Analyzing ${state.constituentCount} individual stocks in this sector-industry combination`;
+        } else {
+          titleEl.textContent = "Individual Stock Analysis";
+          descEl.textContent =
+            "Weinstein 4-stage analysis for individual stocks";
+        }
+      }
+
+      // Initialize dashboard
+      async function initDashboard() {
+        // Set up event listeners
+        setupEventListeners();
+
+        // Set current year
+        document.getElementById("current-year").textContent =
+          new Date().getFullYear();
+
+        // Load stock analysis
+        await loadStockAnalysis();
+      }
+
+      // Set up event listeners
+      function setupEventListeners() {
+        document
+          .getElementById("stage-filter")
+          .addEventListener("change", applyFilters);
+        document
+          .getElementById("sort-by")
+          .addEventListener("change", applyFilters);
+        document
+          .getElementById("trend-filter")
+          .addEventListener("change", applyFilters);
+
+        // Search with debouncing
+        const searchInput = document.getElementById("search-stocks");
+        let searchTimeout;
+
+        searchInput.addEventListener("input", (e) => {
+          if (searchTimeout) {
+            clearTimeout(searchTimeout);
+          }
+
+          searchTimeout = setTimeout(() => {
+            applyFilters();
+          }, 300);
+        });
+      }
+
+      // Load stock analysis data
+      async function loadStockAnalysis() {
+        try {
+          setLoading(true);
+          setError(null);
+
+          console.log("Loading individual stock analysis...");
+
+          if (!state.sector || !state.industry) {
+            throw new Error("Sector and industry information is required");
+          }
+
+          // Fetch stock analysis for this sector-industry combination
+          const response = await fetch(
+            `${API_BASE_URL}/stocks/stage_analysis?sector=${encodeURIComponent(
+              state.sector
+            )}&industry=${encodeURIComponent(state.industry)}`
+          );
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          if (!data.success) {
+            throw new Error(data.error || "Failed to fetch stock analysis");
+          }
+
+          if (
+            !data.data ||
+            !data.data.stocks_analysis ||
+            data.data.stocks_analysis.length === 0
+          ) {
+            throw new Error(
+              "No stocks found for analysis in this sector-industry combination"
+            );
+          }
+
+          console.log(
+            `Processing ${data.data.stocks_analysis.length} individual stocks`
+          );
+
+          // Process stock analysis data
+          state.allStocks = data.data.stocks_analysis.map((stock) => ({
+            ...stock,
+            displayName:
+              stock.stock_info.company_name ||
+              stock.stock_info.symbol.replace(".NS", ""),
+          }));
+
+          // Apply initial filters
+          applyFilters();
+
+          // Update summary stats
+          updateStageSummary();
+
+          // Load charts for visible stocks
+          await loadStockCharts();
+        } catch (error) {
+          console.error("Error loading stock analysis:", error);
+          setError(error.message);
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      // Load charts for all visible stocks
+      async function loadStockCharts() {
+        const visibleStocks = state.filteredStocks.slice(0, 20); // Limit to first 20 for performance
+
+        console.log(`📊 Loading charts for ${visibleStocks.length} stocks`);
+
+        updateLoadingProgress(
+          `Loading stock charts...`,
+          0,
+          visibleStocks.length
+        );
+
+        // Load charts in batches
+        const batchSize = 3;
+        let loadedCount = 0;
+
+        for (let i = 0; i < visibleStocks.length; i += batchSize) {
+          const batch = visibleStocks.slice(i, i + batchSize);
+
+          const batchPromises = batch.map(async (stock) => {
+            await loadSingleStockChart(stock);
+            loadedCount++;
+            updateLoadingProgress(
+              `Loading stock charts...`,
+              loadedCount,
+              visibleStocks.length
+            );
+          });
+
+          await Promise.all(batchPromises);
+
+          // Small delay between batches
+          if (i + batchSize < visibleStocks.length) {
+            await new Promise((resolve) => setTimeout(resolve, 300));
+          }
+        }
+
+        console.log(
+          `✅ Completed loading ${visibleStocks.length} stock charts`
+        );
+      }
+
+      // Load chart for a single stock
+      async function loadSingleStockChart(stock) {
+        const canvasId = `chart-${stock.stock_info.symbol.replace(
+          /[^a-zA-Z0-9]/g,
+          "-"
+        )}`;
+
+        console.log(
+          `📊 Loading chart for ${stock.stock_info.symbol}, canvas: ${canvasId}`
+        );
+
+        // Verify the canvas exists
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) {
+          console.error(
+            `❌ Canvas ${canvasId} not found for ${stock.stock_info.symbol}`
+          );
+          return;
+        }
+
+        try {
+          // If the stock already has price data from the analysis, use it
+          if (stock.price_data && stock.price_data.length > 0) {
+            console.log(
+              `✅ Using existing price data for ${stock.stock_info.symbol} (${stock.price_data.length} points)`
+            );
+            renderStockChart(stock);
+            return;
+          }
+
+          // Otherwise, fetch detailed price history
+          console.log(
+            `📡 Fetching detailed price history for ${stock.stock_info.symbol}`
+          );
+
+          const response = await fetch(
+            `${API_BASE_URL}/stocks/price_history_detailed?symbol=${encodeURIComponent(
+              stock.stock_info.symbol
+            )}&days=365`
+          );
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          if (data.success && data.data && data.data.price_history) {
+            console.log(
+              `✅ Fetched ${data.data.price_history.length} detailed price records for ${stock.stock_info.symbol}`
+            );
+            // Update stock with detailed price data
+            stock.detailed_price_data = data.data.price_history;
+            renderStockChart(stock);
+          } else {
+            console.warn(
+              `⚠️ No detailed price data for ${stock.stock_info.symbol}`
+            );
+            showStockChartError(stock, "No price data available");
+          }
+        } catch (error) {
+          console.error(
+            `💥 Error loading chart for ${stock.stock_info.symbol}:`,
+            error
+          );
+          showStockChartError(stock, `Error: ${error.message}`);
+        }
+      }
+
+      // Render stock chart
+      function renderStockChart(stock) {
+        const canvasId = `chart-${stock.stock_info.symbol.replace(
+          /[^a-zA-Z0-9]/g,
+          "-"
+        )}`;
+        const canvas = document.getElementById(canvasId);
+
+        console.log(
+          `🎨 Rendering chart for ${stock.stock_info.symbol}, canvas ID: ${canvasId}`
+        );
+
+        if (!canvas) {
+          console.error(
+            `❌ Canvas not found for ${stock.stock_info.symbol}, ID: ${canvasId}`
+          );
+          return;
+        }
+
+        // FIXED: Correct selector to find loading and error elements
+        const cardId = `card-${canvasId}`; // This matches the actual card ID
+        const loadingEl = document.querySelector(`#${cardId} .chart-loading`);
+        const errorEl = document.querySelector(`#${cardId} .chart-error`);
+
+        console.log(`🔍 Found elements:`, {
+          canvas: !!canvas,
+          loading: !!loadingEl,
+          error: !!errorEl,
+          cardId: cardId,
+        });
+
+        // Use detailed price data if available, otherwise use basic price data
+        const priceData = stock.detailed_price_data || stock.price_data || [];
+
+        if (priceData.length === 0) {
+          console.warn(`⚠️ No price data for ${stock.stock_info.symbol}`);
+          showStockChartError(stock, "No price data available");
+          return;
+        }
+
+        try {
+          // Sort data by time
+          priceData.sort((a, b) => new Date(a.time) - new Date(b.time));
+
+          // Prepare chart data
+          const dates = priceData.map((item) => {
+            const date = new Date(item.time);
+            return date.toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            });
+          });
+
+          const prices = priceData.map(
+            (item) => item.close_price || item.price
+          );
+
+          // Prepare moving average if available
+          const maData = [];
+          if (stock.moving_average_data) {
+            const maLength = stock.moving_average_data.length;
+            const priceLength = prices.length;
+            const offset = priceLength - maLength;
+
+            for (let i = 0; i < priceLength; i++) {
+              if (i < offset) {
+                maData.push(null);
+              } else {
+                maData.push(stock.moving_average_data[i - offset]);
+              }
+            }
+          }
+
+          // Choose colors based on stage
+          const stageColors = {
+            0: {
+              price: "#6b7280",
+              ma: "#4b5563",
+              bg: "rgba(107, 114, 128, 0.1)",
+            },
+            1: {
+              price: "#94a3b8",
+              ma: "#64748b",
+              bg: "rgba(148, 163, 184, 0.1)",
+            },
+            2: {
+              price: "#22c55e",
+              ma: "#16a34a",
+              bg: "rgba(34, 197, 94, 0.1)",
+            },
+            3: {
+              price: "#f59e0b",
+              ma: "#d97706",
+              bg: "rgba(245, 158, 11, 0.1)",
+            },
+            4: {
+              price: "#ef4444",
+              ma: "#dc2626",
+              bg: "rgba(239, 68, 68, 0.1)",
+            },
+          };
+
+          const colors = stageColors[stock.stage] || stageColors[0];
+
+          // Create chart datasets
+          const datasets = [
+            {
+              label: "Price",
+              data: prices,
+              borderColor: colors.price,
+              backgroundColor: colors.bg,
+              borderWidth: 2,
+              pointRadius: 0,
+              pointHoverRadius: 4,
+              tension: 0.1,
+              fill: true,
+              order: 1,
+            },
+          ];
+
+          // Add moving average if available
+          if (maData.length > 0 && maData.some((val) => val !== null)) {
+            datasets.push({
+              label: "30-MA",
+              data: maData,
+              borderColor: colors.ma,
+              borderWidth: 2,
+              borderDash: [5, 5],
+              pointRadius: 0,
+              pointHoverRadius: 4,
+              tension: 0.1,
+              fill: false,
+              order: 0,
+            });
+          }
+
+          // Sample data if too many points
+          let displayDates = dates;
+          let displayDatasets = datasets;
+
+          if (dates.length > 50) {
+            const step = Math.ceil(dates.length / 50);
+            displayDates = dates.filter((_, i) => i % step === 0);
+            displayDatasets = datasets.map((dataset) => ({
+              ...dataset,
+              data: dataset.data.filter((_, i) => i % step === 0),
+            }));
+          }
+
+          // Create chart
+          const ctx = canvas.getContext("2d");
+
+          // Destroy existing chart if any
+          if (state.charts[stock.stock_info.symbol]) {
+            state.charts[stock.stock_info.symbol].destroy();
+          }
+
+          state.charts[stock.stock_info.symbol] = new Chart(ctx, {
+            type: "line",
+            data: {
+              labels: displayDates,
+              datasets: displayDatasets,
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              animation: {
+                duration: 600,
+                easing: "easeInOutQuart",
+              },
+              plugins: {
+                legend: {
+                  display: maData.length > 0,
+                  position: "top",
+                  labels: {
+                    usePointStyle: true,
+                    font: {
+                      size: 9,
+                    },
+                  },
+                },
+                tooltip: {
+                  mode: "index",
+                  intersect: false,
+                  backgroundColor: "rgba(0, 0, 0, 0.8)",
+                  callbacks: {
+                    title: function (tooltipItems) {
+                      return tooltipItems[0].label;
+                    },
+                    label: function (context) {
+                      if (context.datasetIndex === 0) {
+                        return `Price: ₹${context.raw.toFixed(2)}`;
+                      } else {
+                        return `30-MA: ₹${
+                          context.raw ? context.raw.toFixed(2) : "N/A"
+                        }`;
+                      }
+                    },
+                  },
+                },
+              },
+              scales: {
+                x: {
+                  display: true,
+                  grid: {
+                    display: false,
+                  },
+                  ticks: {
+                    maxTicksLimit: 5,
+                    font: {
+                      size: 9,
+                    },
+                    color: "#6b7280",
+                  },
+                },
+                y: {
+                  display: true,
+                  grid: {
+                    color: "rgba(0, 0, 0, 0.05)",
+                  },
+                  ticks: {
+                    maxTicksLimit: 4,
+                    font: {
+                      size: 9,
+                    },
+                    color: "#6b7280",
+                    callback: function (value) {
+                      return `₹${value.toFixed(0)}`;
+                    },
+                  },
+                },
+              },
+              interaction: {
+                mode: "nearest",
+                axis: "x",
+                intersect: false,
+              },
+            },
+          });
+
+          console.log(
+            `✅ Chart rendered successfully for ${stock.stock_info.symbol}`
+          );
+
+          // FIXED: Hide loading spinner using correct selector
+          if (loadingEl) {
+            loadingEl.style.display = "none";
+            console.log(
+              `🔄 Loading spinner hidden for ${stock.stock_info.symbol}`
+            );
+          } else {
+            console.warn(
+              `⚠️ Loading element not found for ${stock.stock_info.symbol}`
+            );
+          }
+
+          // Hide error element too
+          if (errorEl) {
+            errorEl.style.display = "none";
+          }
+        } catch (error) {
+          console.error(
+            `💥 Error rendering chart for ${stock.stock_info.symbol}:`,
+            error
+          );
+          showStockChartError(stock, `Chart error: ${error.message}`);
+        }
+      }
+
+      // Show stock chart error
+      function showStockChartError(stock, errorMessage) {
+        const canvasId = `chart-${stock.stock_info.symbol.replace(
+          /[^a-zA-Z0-9]/g,
+          "-"
+        )}`;
+        const cardId = `card-${canvasId}`; // FIXED: Correct card ID
+
+        console.log(
+          `❌ Showing error for ${stock.stock_info.symbol}: ${errorMessage}`
+        );
+
+        const loadingEl = document.querySelector(`#${cardId} .chart-loading`);
+        const errorEl = document.querySelector(`#${cardId} .chart-error`);
+
+        if (loadingEl) {
+          loadingEl.style.display = "none";
+          console.log(
+            `🔄 Loading spinner hidden (error) for ${stock.stock_info.symbol}`
+          );
+        }
+
+        if (errorEl) {
+          errorEl.style.display = "flex";
+          errorEl.textContent = errorMessage;
+          console.log(`📝 Error message shown for ${stock.stock_info.symbol}`);
+        }
+      }
+
+      // Fixed loadSingleStockChart function
+      async function loadSingleStockChart(stock) {
+        const canvasId = `chart-${stock.stock_info.symbol.replace(
+          /[^a-zA-Z0-9]/g,
+          "-"
+        )}`;
+
+        console.log(
+          `📊 Loading chart for ${stock.stock_info.symbol}, canvas: ${canvasId}`
+        );
+
+        try {
+          // If the stock already has price data from the analysis, use it
+          if (stock.price_data && stock.price_data.length > 0) {
+            console.log(
+              `✅ Using existing price data for ${stock.stock_info.symbol} (${stock.price_data.length} points)`
+            );
+            renderStockChart(stock);
+            return;
+          }
+
+          // Otherwise, fetch detailed price history
+          console.log(
+            `📡 Fetching detailed price history for ${stock.stock_info.symbol}`
+          );
+
+          const response = await fetch(
+            `${API_BASE_URL}/stocks/price_history_detailed?symbol=${encodeURIComponent(
+              stock.stock_info.symbol
+            )}&days=365`
+          );
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          if (data.success && data.data && data.data.price_history) {
+            console.log(
+              `✅ Fetched ${data.data.price_history.length} detailed price records for ${stock.stock_info.symbol}`
+            );
+            // Update stock with detailed price data
+            stock.detailed_price_data = data.data.price_history;
+            renderStockChart(stock);
+          } else {
+            console.warn(
+              `⚠️ No detailed price data for ${stock.stock_info.symbol}`
+            );
+            showStockChartError(stock, "No price data available");
+          }
+        } catch (error) {
+          console.error(
+            `💥 Error loading chart for ${stock.stock_info.symbol}:`,
+            error
+          );
+          showStockChartError(stock, `Error: ${error.message}`);
+        }
+      }
+
+      // Enhanced debugging function to check loading states
+      function debugLoadingStates() {
+        console.log("🔍 DEBUGGING LOADING STATES...");
+
+        const allLoadingElements = document.querySelectorAll(".chart-loading");
+        console.log(`Found ${allLoadingElements.length} loading elements:`);
+
+        allLoadingElements.forEach((el, index) => {
+          const isVisible =
+            el.style.display !== "none" &&
+            getComputedStyle(el).display !== "none";
+          const parentCard = el.closest(".stock-card");
+          const canvas = parentCard ? parentCard.querySelector("canvas") : null;
+          const canvasId = canvas ? canvas.id : "unknown";
+
+          console.log(
+            `  ${index + 1}. Canvas: ${canvasId}, Loading visible: ${isVisible}`
+          );
+
+          if (isVisible) {
+            console.log(`    ⚠️ Loading still visible for ${canvasId}`);
+            // Force hide it for debugging
+            el.style.display = "none";
+            console.log(`    🔧 Manually hidden loading for ${canvasId}`);
+          }
+        });
+
+        console.log("🔍 LOADING STATES DEBUG COMPLETE");
+      }
+
+      // Enhanced debugging function to check chart states
+      function debugChartStates() {
+        console.log("🔍 DEBUGGING CHART STATES...");
+
+        console.log(
+          `📊 Active charts in state: ${Object.keys(state.charts || {}).length}`
+        );
+
+        const allCanvases = document.querySelectorAll(".stock-chart");
+        console.log(`🎨 Canvas elements found: ${allCanvases.length}`);
+
+        allCanvases.forEach((canvas, index) => {
+          const hasChart =
+            state.charts &&
+            state.charts[canvas.id.replace("chart-", "").replace(/-/g, ".")];
+          const parentCard = canvas.closest(".stock-card");
+          const loadingEl = parentCard
+            ? parentCard.querySelector(".chart-loading")
+            : null;
+          const errorEl = parentCard
+            ? parentCard.querySelector(".chart-error")
+            : null;
+
+          const loadingVisible = loadingEl
+            ? loadingEl.style.display !== "none" &&
+              getComputedStyle(loadingEl).display !== "none"
+            : false;
+          const errorVisible = errorEl
+            ? errorEl.style.display !== "none" &&
+              getComputedStyle(errorEl).display !== "none"
+            : false;
+
+          console.log(`  ${index + 1}. Canvas: ${canvas.id}`);
+          console.log(`    - Has Chart: ${!!hasChart}`);
+          console.log(`    - Loading Visible: ${loadingVisible}`);
+          console.log(`    - Error Visible: ${errorVisible}`);
+
+          if (loadingVisible && hasChart) {
+            console.log(
+              `    ⚠️ ISSUE: Chart exists but loading still visible!`
+            );
+          }
+        });
+
+        console.log("🔍 CHART STATES DEBUG COMPLETE");
+      }
+
+      // Global debug functions
+      window.debugLoadingStates = debugLoadingStates;
+      window.debugChartStates = debugChartStates;
+
+      // Auto-hide any stuck loading spinners after 10 seconds
+      setTimeout(() => {
+        console.log("🧹 Auto-cleanup: Checking for stuck loading spinners...");
+
+        const stuckLoadingElements =
+          document.querySelectorAll(".chart-loading");
+        let hiddenCount = 0;
+
+        stuckLoadingElements.forEach((el) => {
+          if (
+            el.style.display !== "none" &&
+            getComputedStyle(el).display !== "none"
+          ) {
+            const parentCard = el.closest(".stock-card");
+            const canvas = parentCard
+              ? parentCard.querySelector("canvas")
+              : null;
+
+            if (canvas) {
+              // Check if chart actually exists
+              const symbol = canvas.id.replace("chart-", "").replace(/-/g, ".");
+              const hasChart = state.charts && state.charts[symbol];
+
+              if (hasChart) {
+                console.log(
+                  `🧹 Auto-hiding stuck loading spinner for ${symbol}`
+                );
+                el.style.display = "none";
+                hiddenCount++;
+              }
+            }
+          }
+        });
+
+        if (hiddenCount > 0) {
+          console.log(
+            `🧹 Auto-cleanup: Hidden ${hiddenCount} stuck loading spinners`
+          );
+        } else {
+          console.log("🧹 Auto-cleanup: No stuck loading spinners found");
+        }
+      }, 10000);
+
+      console.log("🔧 Individual stock chart loading fixes applied!");
+      console.log("📋 Debug functions available:");
+      console.log("  - debugLoadingStates() - Check loading spinner states");
+      console.log("  - debugChartStates() - Check chart render states");
+      // Apply filters
+      function applyFilters() {
+        // Get filter values
+        state.filters.stage = document.getElementById("stage-filter").value;
+        state.filters.trend = document.getElementById("trend-filter").value;
+        state.filters.search = document
+          .getElementById("search-stocks")
+          .value.toLowerCase()
+          .trim();
+        state.filters.sortBy = document.getElementById("sort-by").value;
+
+        console.log("🔍 Applying stock filters:", state.filters);
+
+        // Apply filters
+        state.filteredStocks = state.allStocks.filter((stock) => {
+          if (
+            state.filters.stage &&
+            stock.stage.toString() !== state.filters.stage
+          )
+            return false;
+          if (
+            state.filters.trend &&
+            stock.trend_direction !== state.filters.trend
+          )
+            return false;
+          if (state.filters.search) {
+            const searchTerm = state.filters.search;
+            const searchableText = `${stock.stock_info.symbol} ${
+              stock.stock_info.company_name || ""
+            }`.toLowerCase();
+            if (!searchableText.includes(searchTerm)) return false;
+          }
+          return true;
+        });
+
+        // Apply sorting
+        state.filteredStocks.sort((a, b) => {
+          switch (state.filters.sortBy) {
+            case "stage":
+              return a.stage - b.stage;
+            case "trend_strength":
+              return (b.trend_strength || 0) - (a.trend_strength || 0);
+            case "performance":
+              return (b.performance_20_day || 0) - (a.performance_20_day || 0);
+            case "market_cap":
+              return (
+                (b.stock_info.market_cap || 0) - (a.stock_info.market_cap || 0)
+              );
+            case "symbol":
+              return a.stock_info.symbol.localeCompare(b.stock_info.symbol);
+            case "company_name":
+              return (
+                a.stock_info.company_name || a.stock_info.symbol
+              ).localeCompare(b.stock_info.company_name || b.stock_info.symbol);
+            default:
+              return a.stage - b.stage;
+          }
+        });
+
+        console.log(`📊 Filtered to ${state.filteredStocks.length} stocks`);
+
+        // Re-render grid
+        renderStocksGrid();
+
+        // Update summary stats
+        updateStageSummary();
+
+        // FIXED: Load charts for the filtered stocks
+        if (state.filteredStocks.length > 0) {
+          console.log("🔄 Loading charts for filtered stocks...");
+          // Small delay to ensure DOM is updated
+          setTimeout(() => {
+            loadStockChartsForFiltered();
+          }, 100);
+        }
+      }
+
+      async function loadStockChartsForFiltered() {
+        // Limit to reasonable number for performance
+        const visibleStocks = state.filteredStocks.slice(0, 20);
+
+        console.log(
+          `📊 Loading charts for ${visibleStocks.length} filtered stocks`
+        );
+
+        // Update loading progress if we have the elements
+        const loadingText = document.getElementById("loading-text");
+        const loadingProgress = document.getElementById("loading-progress");
+
+        if (loadingText) {
+          loadingText.textContent = `Loading charts for filtered stocks...`;
+        }
+
+        // Load charts in batches to prevent overwhelming
+        const batchSize = 3;
+        let loadedCount = 0;
+
+        for (let i = 0; i < visibleStocks.length; i += batchSize) {
+          const batch = visibleStocks.slice(i, i + batchSize);
+
+          const batchPromises = batch.map(async (stock) => {
+            try {
+              await loadSingleStockChart(stock);
+              loadedCount++;
+
+              if (loadingProgress) {
+                loadingProgress.textContent = `Charts loaded: ${loadedCount}/${visibleStocks.length}`;
+              }
+
+              console.log(
+                `✅ Chart loaded for ${stock.stock_info.symbol} (${loadedCount}/${visibleStocks.length})`
+              );
+            } catch (error) {
+              console.error(
+                `❌ Failed to load chart for ${stock.stock_info.symbol}:`,
+                error
+              );
+              loadedCount++;
+            }
+          });
+
+          await Promise.all(batchPromises);
+
+          // Small delay between batches
+          if (i + batchSize < visibleStocks.length) {
+            await new Promise((resolve) => setTimeout(resolve, 200));
+          }
+        }
+
+        console.log(
+          `✅ Completed loading ${visibleStocks.length} filtered stock charts`
+        );
+
+        // Clear loading indicators
+        if (loadingText) {
+          loadingText.textContent = "";
+        }
+        if (loadingProgress) {
+          loadingProgress.textContent = "";
+        }
+      }
+
+      // Render stocks grid
+      function renderStocksGrid() {
+        const grid = document.getElementById("stocks-grid");
+        grid.innerHTML = "";
+
+        if (state.filteredStocks.length === 0) {
+          grid.innerHTML = `
+            <div class="empty-state" style="grid-column: 1 / -1;">
+                <h3>No stocks found</h3>
+                <p>Try adjusting your filters or search terms.</p>
+            </div>
+        `;
+          return;
+        }
+
+        console.log(`🏗️ Rendering ${state.filteredStocks.length} stock cards`);
+
+        state.filteredStocks.forEach((stock, index) => {
+          const card = createStockCard(stock);
+          grid.appendChild(card);
+
+          // Log card creation
+          console.log(
+            `📋 Created card ${index + 1}/${state.filteredStocks.length} for ${
+              stock.stock_info.symbol
+            }`
+          );
+        });
+
+        console.log(`✅ Rendered ${state.filteredStocks.length} stock cards`);
+      }
+
+      // Create individual stock card
+      function createStockCard(stock) {
+        const canvasId = `chart-${stock.stock_info.symbol.replace(
+          /[^a-zA-Z0-9]/g,
+          "-"
+        )}`;
+        const cardId = `card-${canvasId}`;
+
+        console.log(
+          `🏗️ Creating stock card for ${stock.stock_info.symbol}, cardId: ${cardId}, canvasId: ${canvasId}`
+        );
+
+        const card = document.createElement("div");
+        card.className = `stock-card stage-${stock.stage}`;
+        card.id = cardId;
+
+        const trendIcon =
+          stock.trend_direction === "up"
+            ? "📈"
+            : stock.trend_direction === "down"
+            ? "📉"
+            : "➡️";
+
+        // Format market cap
+        const marketCap = stock.stock_info.market_cap;
+        let marketCapText = "N/A";
+        if (marketCap) {
+          const marketCapCrores = marketCap / 1e7;
+          marketCapText = `₹${marketCapCrores.toFixed(0)}Cr`;
+        }
+
+        // Get stage text
+        const stageText = stock.stage === 0 ? "N/A" : `Stage ${stock.stage}`;
+
+        card.innerHTML = `
+        <div class="stock-header">
+            <div class="stock-title">${stock.stock_info.symbol.replace(
+              ".NS",
+              ""
+            )}</div>
+            <div class="stock-subtitle">
+                <span>${stock.stock_info.company_name || "N/A"}</span>
+                <span class="market-cap">${marketCapText}</span>
+            </div>
+            <div class="stage-badge stage-${stock.stage}">
+                ${stageText}
+            </div>
+        </div>
+        
+        <div class="stock-chart-container">
+            <canvas id="${canvasId}" class="stock-chart"></canvas>
+            <div class="chart-loading">
+                <div class="loading-spinner" style="width: 1.2rem; height: 1.2rem; border-width: 2px;"></div>
+                <p style="margin-top: 0.5rem; font-size: 0.8rem;">Loading chart...</p>
+            </div>
+            <div class="chart-error" style="display: none;">
+                Chart unavailable
+            </div>
+        </div>
+        
+        <div class="stock-metrics">
+            <div class="stock-metric">
+                <div class="stock-metric-label">Stage</div>
+                <div class="stock-metric-value">
+                    ${stock.stage_description || "Unknown"}
+                    <div class="trend-indicator trend-${
+                      stock.trend_direction || "sideways"
+                    }">
+                        ${trendIcon}
+                    </div>
+                </div>
+            </div>
+            <div class="stock-metric">
+                <div class="stock-metric-label">Price</div>
+                <div class="stock-metric-value">₹${(
+                  stock.current_price || 0
+                ).toFixed(2)}</div>
+            </div>
+            <div class="stock-metric">
+                <div class="stock-metric-label">vs 30-MA</div>
+                <div class="stock-metric-value">${
+                  stock.price_vs_ma === "above" ? "↑" : "↓"
+                } ${stock.price_vs_ma || "N/A"}</div>
+            </div>
+            <div class="stock-metric">
+                <div class="stock-metric-label">20D Return</div>
+                <div class="stock-metric-value">
+                    <span class="trend-indicator ${
+                      (stock.performance_20_day || 0) >= 0
+                        ? "trend-up"
+                        : "trend-down"
+                    }">
+                        ${(stock.performance_20_day || 0) >= 0 ? "+" : ""}${(
+          stock.performance_20_day || 0
+        ).toFixed(1)}%
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stage-details">
+            <strong>Analysis:</strong> ${
+              stock.stage_details || "Analysis not available"
+            }
+        </div>
+    `;
+
+        return card;
+      }
+      // Update stage summary
+      function updateStageSummary() {
+        const stageCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
+
+        state.filteredStocks.forEach((stock) => {
+          if (stock.stage >= 1 && stock.stage <= 4) {
+            stageCounts[stock.stage]++;
+          }
+        });
+
+        document.getElementById("stage1-count").textContent = stageCounts[1];
+        document.getElementById("stage2-count").textContent = stageCounts[2];
+        document.getElementById("stage3-count").textContent = stageCounts[3];
+        document.getElementById("stage4-count").textContent = stageCounts[4];
+      }
+
+      // Update loading progress
+      function updateLoadingProgress(message, current, total) {
+        const loadingText = document.getElementById("loading-text");
+        const loadingProgress = document.getElementById("loading-progress");
+
+        if (loadingText) {
+          loadingText.textContent = message;
+        }
+
+        if (loadingProgress && total > 0) {
+          const percentage = Math.round((current / total) * 100);
+          loadingProgress.textContent = `${current}/${total} completed (${percentage}%)`;
+        }
+      }
+
+      // Utility functions
+      function setLoading(loading) {
+        state.loading = loading;
+        document.getElementById("loading-container").style.display = loading
+          ? "block"
+          : "none";
+        document.getElementById("stocks-grid").style.display = loading
+          ? "none"
+          : "grid";
+      }
+
+      function setError(error) {
+        state.error = error;
+        const errorContainer = document.getElementById("error-container");
+
+        if (error) {
+          document.getElementById("error-message").textContent = error;
+          errorContainer.style.display = "block";
+          document.getElementById("stocks-grid").style.display = "none";
+        } else {
+          errorContainer.style.display = "none";
+          if (!state.loading) {
+            document.getElementById("stocks-grid").style.display = "grid";
+          }
+        }
+      }
+
+      // Global functions
+      window.refreshStockAnalysis = async function () {
+        console.log("Refreshing individual stock analysis...");
+
+        // Clear existing data
+        state.stockAnalysis = {};
+        Object.values(state.charts).forEach((chart) => chart.destroy());
+        state.charts = {};
+
+        // Reload analysis
+        await loadStockAnalysis();
+      };
+    </script>
+  </body>
+</html>

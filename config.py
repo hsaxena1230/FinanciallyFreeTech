@@ -25,3 +25,5 @@ class Config:
     @property
     def database_url(self):
         return f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+
+    ENABLE_PRICE_FETCHING = os.getenv('ENABLE_PRICE_FETCHING', 'true').lower() in ('true', '1', 'yes', 'on')
