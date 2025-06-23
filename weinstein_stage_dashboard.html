@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stan Weinstein Stage Analysis Dashboard</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fa;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header styles */
+        header {
+            background: linear-gradient(135deg, #1e40af, #3b82f6, #06b6d4);
+            color: white;
+            padding: 2rem 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        header p {
+            color: #bfdbfe;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stage-legend {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+        
+        .stage-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+        }
+        
+        .stage-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+        
+        .stage-1 { background-color: #94a3b8; }
+        .stage-2 { background-color: #22c55e; }
+        .stage-3 { background-color: #f59e0b; }
+        .stage-4 { background-color: #ef4444; }
+        
+        /* Navigation */
+        .nav-links {
+            margin-top: 1rem;
+        }
+        
+        .nav-links a {
+            color: #bfdbfe;
+            text-decoration: none;
+            margin-right: 2rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        
+        .nav-links a:hover {
+            color: white;
+        }
+        
+        /* Controls section */
+        .controls-section {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .controls-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .controls-header h2 {
+            font-size: 1.25rem;
+            color: #1f2937;
+        }
+        
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .control-group label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #4b5563;
+            margin-bottom: 0.25rem;
+        }
+        
+        .control-group select,
+        .control-group input {
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+        }
+        
+        .refresh-btn {
+            padding: 0.5rem 1rem;
+            background-color: #1e40af;
+            color: white;
+            border: none;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .refresh-btn:hover {
+            background-color: #1d4ed8;
+        }
+        
+        /* Stage summary */
+        .stage-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stage-summary-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid transparent;
+            text-align: center;
+        }
+        
+        .stage-summary-card.stage-1 { border-left-color: #94a3b8; }
+        .stage-summary-card.stage-2 { border-left-color: #22c55e; }
+        .stage-summary-card.stage-3 { border-left-color: #f59e0b; }
+        .stage-summary-card.stage-4 { border-left-color: #ef4444; }
+        
+        .stage-summary-card h3 {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .stage-summary-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        
+        .stage-summary-card.stage-1 .value { color: #94a3b8; }
+        .stage-summary-card.stage-2 .value { color: #22c55e; }
+        .stage-summary-card.stage-3 .value { color: #f59e0b; }
+        .stage-summary-card.stage-4 .value { color: #ef4444; }
+        
+        .stage-description {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+        
+        /* Loading states */
+        .loading-container {
+            padding: 3rem;
+            text-align: center;
+        }
+        
+        .loading-spinner {
+            width: 3rem;
+            height: 3rem;
+            border: 4px solid #e5e7eb;
+            border-radius: 50%;
+            border-top-color: #1e40af;
+            margin: 0 auto 1rem;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        /* Indices grid */
+        .indices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .index-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-top: 4px solid transparent;
+        }
+        
+        .index-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .index-card.stage-1 { border-top-color: #94a3b8; }
+        .index-card.stage-2 { border-top-color: #22c55e; }
+        .index-card.stage-3 { border-top-color: #f59e0b; }
+        .index-card.stage-4 { border-top-color: #ef4444; }
+        
+        .index-header {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            position: relative;
+        }
+        
+        .index-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+            padding-right: 4rem;
+        }
+        
+        .index-subtitle {
+            font-size: 0.875rem;
+            color: #6b7280;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .stage-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+            text-align: center;
+            min-width: 60px;
+        }
+        
+        .stage-badge.stage-1 { background-color: #94a3b8; }
+        .stage-badge.stage-2 { background-color: #22c55e; }
+        .stage-badge.stage-3 { background-color: #f59e0b; }
+        .stage-badge.stage-4 { background-color: #ef4444; }
+        
+        .constituent-count {
+            background-color: #eef2ff;
+            color: #1e40af;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .index-chart-container {
+            height: 200px;
+            position: relative;
+            padding: 1rem;
+        }
+        
+        .index-chart {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .chart-loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .chart-error {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #b91c1c;
+            font-size: 0.875rem;
+            background-color: #fef2f2;
+            text-align: center;
+        }
+        
+        .stage-metrics {
+            padding: 1rem;
+            background-color: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 0.5rem;
+            text-align: center;
+        }
+        
+        .stage-metric {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .stage-metric-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+        
+        .stage-metric-value {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .trend-indicator {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.75rem;
+            padding: 0.125rem 0.25rem;
+            border-radius: 0.25rem;
+            margin-left: 0.25rem;
+        }
+        
+        .trend-up {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        
+        .trend-down {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .trend-sideways {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        /* Stage details */
+        .stage-details {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 0.5rem;
+        }
+        
+        /* Error states */
+        .error-container {
+            background-color: #fee2e2;
+            border: 1px solid #fecaca;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            color: #b91c1c;
+            margin: 2rem 0;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .indices-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stage-summary {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .stage-metrics {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stage-legend {
+                flex-direction: column;
+            }
+            
+            .stage-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Footer */
+        footer {
+            background-color: #1f2937;
+            color: white;
+            padding: 2rem 0;
+            margin-top: 3rem;
+            text-align: center;
+        }
+        
+        footer p {
+            margin-bottom: 0.25rem;
+        }
+        
+        footer .credit {
+            color: #9ca3af;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>📈 Stan Weinstein Stage Analysis</h1>
+            <p>Comprehensive 4-stage market cycle analysis for sector-industry indices</p>
+            
+            <div class="stage-legend">
+                <div class="stage-item">
+                    <div class="stage-color stage-1"></div>
+                    <span><strong>Stage 1:</strong> Accumulation/Basing</span>
+                </div>
+                <div class="stage-item">
+                    <div class="stage-color stage-2"></div>
+                    <span><strong>Stage 2:</strong> Advancing/Markup</span>
+                </div>
+                <div class="stage-item">
+                    <div class="stage-color stage-3"></div>
+                    <span><strong>Stage 3:</strong> Distribution/Topping</span>
+                </div>
+                <div class="stage-item">
+                    <div class="stage-color stage-4"></div>
+                    <span><strong>Stage 4:</strong> Declining/Markdown</span>
+                </div>
+            </div>
+            
+            <div class="nav-links">
+                <a href="indices-dashboard.html">← Back to Index Dashboard</a>
+                <a href="fixed-index-functionality.html">← Main Explorer</a>
+                <a href="#" onclick="refreshStageAnalysis()">🔄 Refresh Analysis</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Controls Section -->
+        <div class="controls-section">
+            <div class="controls-header">
+                <h2>🎯 Stage Analysis Filters</h2>
+                <button class="refresh-btn" onclick="refreshStageAnalysis()">
+                    🔄 Refresh Analysis
+                </button>
+            </div>
+            
+            <div class="controls-grid">
+                <div class="control-group">
+                    <label for="stage-filter">Filter by Stage</label>
+                    <select id="stage-filter">
+                        <option value="">All Stages</option>
+                        <option value="1">Stage 1 - Accumulation</option>
+                        <option value="2">Stage 2 - Advancing</option>
+                        <option value="3">Stage 3 - Distribution</option>
+                        <option value="4">Stage 4 - Declining</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="sector-filter">Filter by Sector</label>
+                    <select id="sector-filter">
+                        <option value="">All Sectors</option>
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="sort-by">Sort by</label>
+                    <select id="sort-by">
+                        <option value="stage">Stage (1-4)</option>
+                        <option value="trend_strength">Trend Strength</option>
+                        <option value="stage_duration">Stage Duration</option>
+                        <option value="name">Name (A-Z)</option>
+                        <option value="sector">Sector</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="trend-filter">Trend Direction</label>
+                    <select id="trend-filter">
+                        <option value="">All Trends</option>
+                        <option value="up">📈 Uptrend</option>
+                        <option value="down">📉 Downtrend</option>
+                        <option value="sideways">➡️ Sideways</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="search-indices">Search Indices</label>
+                    <input type="text" id="search-indices" placeholder="Search by name...">
+                </div>
+            </div>
+        </div>
+
+        <!-- Stage Summary -->
+        <div class="stage-summary" id="stage-summary">
+            <div class="stage-summary-card stage-1">
+                <h3>Stage 1 - Accumulation</h3>
+                <div class="value" id="stage1-count">-</div>
+                <div class="stage-description">Basing after decline</div>
+            </div>
+            <div class="stage-summary-card stage-2">
+                <h3>Stage 2 - Advancing</h3>
+                <div class="value" id="stage2-count">-</div>
+                <div class="stage-description">Uptrend breakout</div>
+            </div>
+            <div class="stage-summary-card stage-3">
+                <h3>Stage 3 - Distribution</h3>
+                <div class="value" id="stage3-count">-</div>
+                <div class="stage-description">Topping formation</div>
+            </div>
+            <div class="stage-summary-card stage-4">
+                <h3>Stage 4 - Declining</h3>
+                <div class="value" id="stage4-count">-</div>
+                <div class="stage-description">Downtrend breakdown</div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading-container" id="loading-container">
+            <div class="loading-spinner"></div>
+            <p id="loading-text">Calculating Weinstein Stage Analysis...</p>
+            <p id="loading-progress" style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem;"></p>
+        </div>
+
+        <!-- Error State -->
+        <div class="error-container" id="error-container" style="display: none;">
+            <h3>⚠️ Error Loading Stage Analysis</h3>
+            <p id="error-message">Unable to load stage analysis data</p>
+            <div style="margin-top: 1rem;">
+                <button class="refresh-btn" onclick="refreshStageAnalysis()">
+                    🔄 Try Again
+                </button>
+            </div>
+        </div>
+
+        <!-- Indices Grid -->
+        <div class="indices-grid" id="indices-grid">
+            <!-- Index cards will be populated dynamically -->
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; <span id="current-year">2025</span> FinanciallyFreeTech</p>
+            <p class="credit">Stan Weinstein Stage Analysis Dashboard - Based on "Secrets for Profiting in Bull and Bear Markets"</p>
+        </div>
+    </footer>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:5000/api';
+        
+        // State management
+        let state = {
+            allIndices: [],
+            filteredIndices: [],
+            stageAnalysis: {},
+            charts: {},
+            loading: false,
+            error: null,
+            filters: {
+                stage: '',
+                sector: '',
+                trend: '',
+                search: '',
+                sortBy: 'stage'
+            }
+        };
+        
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Weinstein Stage Analysis Dashboard loaded');
+            
+            // Add Chart.js
+            const chartScript = document.createElement('script');
+            chartScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js';
+            chartScript.onload = function() {
+                console.log('Chart.js loaded');
+                initDashboard();
+            };
+            document.head.appendChild(chartScript);
+        });
+        
+        // Initialize dashboard
+        async function initDashboard() {
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Set current year
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+            
+            // Load initial data
+            await loadStageAnalysis();
+        }
+        
+        // Set up event listeners
+        function setupEventListeners() {
+            document.getElementById('stage-filter').addEventListener('change', applyFilters);
+            document.getElementById('sector-filter').addEventListener('change', applyFilters);
+            document.getElementById('sort-by').addEventListener('change', applyFilters);
+            document.getElementById('trend-filter').addEventListener('change', applyFilters);
+            
+            // Search with debouncing
+            const searchInput = document.getElementById('search-indices');
+            let searchTimeout;
+            
+            searchInput.addEventListener('input', (e) => {
+                if (searchTimeout) {
+                    clearTimeout(searchTimeout);
+                }
+                
+                searchTimeout = setTimeout(() => {
+                    applyFilters();
+                }, 300);
+            });
+        }
+        
+        // Load stage analysis data
+        async function loadStageAnalysis() {
+            try {
+                setLoading(true);
+                setError(null);
+                
+                console.log('Loading indices for stage analysis...');
+                
+                // First, get all indices
+                const response = await fetch(`${API_BASE_URL}/indices/names`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to fetch indices');
+                }
+                
+                if (!data.data || data.data.length === 0) {
+                    throw new Error('No indices found. Please generate indices first.');
+                }
+                
+                console.log(`Processing ${data.data.length} indices for stage analysis`);
+                
+                // Process indices data
+                state.allIndices = data.data.map(index => ({
+                    index_name: index.index_name,
+                    index_type: index.index_type,
+                    constituent_count: index.constituent_count,
+                    sector: extractSector(index.index_name),
+                    industry: extractIndustry(index.index_name),
+                    displayName: formatIndexName(index.index_name)
+                }));
+                
+                // Update filter options
+                updateFilterOptions();
+                
+                // Load price data and calculate stages for all indices
+                await calculateStageAnalysisForAll();
+                
+                // Apply initial filters
+                applyFilters();
+                
+                // Update summary stats
+                updateStageSummary();
+                
+            } catch (error) {
+                console.error('Error loading stage analysis:', error);
+                setError(error.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+        
+        // Calculate stage analysis for all indices
+        async function calculateStageAnalysisForAll() {
+            const batchSize = 5;
+            let processedCount = 0;
+            
+            updateLoadingProgress(`Calculating stage analysis for ${state.allIndices.length} indices...`, 0, state.allIndices.length);
+            
+            for (let i = 0; i < state.allIndices.length; i += batchSize) {
+                const batch = state.allIndices.slice(i, i + batchSize);
+                
+                // Process batch concurrently
+                const batchPromises = batch.map(async (index) => {
+                    try {
+                        const stageData = await calculateWeinsteingStage(index);
+                        state.stageAnalysis[index.index_name] = stageData;
+                        processedCount++;
+                        updateLoadingProgress(`Calculating stage analysis...`, processedCount, state.allIndices.length);
+                    } catch (error) {
+                        console.error(`Failed to calculate stage for ${index.index_name}:`, error);
+                        // Add default stage data for failed calculations
+                        state.stageAnalysis[index.index_name] = createDefaultStageData();
+                        processedCount++;
+                        updateLoadingProgress(`Calculating stage analysis...`, processedCount, state.allIndices.length);
+                    }
+                });
+                
+                await Promise.all(batchPromises);
+                
+                // Small delay between batches
+                if (i + batchSize < state.allIndices.length) {
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
+            }
+            
+            console.log(`✅ Completed stage analysis for ${processedCount} indices`);
+        }
+        
+        // Calculate Weinstein stage for a single index
+        async function calculateWeinsteingStage(index) {
+            try {
+                // Fetch price data for the index
+                const encodedName = encodeURIComponent(index.index_name);
+                const response = await fetch(`${API_BASE_URL}/indices/data?name=${encodedName}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch data for ${index.index_name}`);
+                }
+                
+                const data = await response.json();
+                
+                if (!data.success || !data.data || data.data.length < 30) {
+                    throw new Error(`Insufficient data for ${index.index_name}`);
+                }
+                
+                // Sort data by time
+                const priceData = data.data.sort((a, b) => new Date(a.time) - new Date(b.time));
+                
+                // Calculate stage analysis
+                return analyzeWeinsteingStage(priceData, index);
+                
+            } catch (error) {
+                console.error(`Error calculating stage for ${index.index_name}:`, error);
+                throw error;
+            }
+        }
+        
+        // Analyze Weinstein stage based on price data
+        function analyzeWeinsteingStage(priceData, index) {
+            const prices = priceData.map(d => d.index_value);
+            const length = prices.length;
+            
+            if (length < 30) {
+                return createDefaultStageData();
+            }
+            
+            // Calculate 30-period moving average (equivalent to 30-week MA)
+            const maLength = Math.min(30, Math.floor(length / 4)); // Adjust for available data
+            const movingAverage = calculateMovingAverage(prices, maLength);
+            
+            // Get current values
+            const currentPrice = prices[length - 1];
+            const currentMA = movingAverage[movingAverage.length - 1];
+            const previousMA = movingAverage[movingAverage.length - 2];
+            
+            // Calculate trend characteristics
+            const priceVsMA = currentPrice > currentMA ? 'above' : 'below';
+            const maTrend = currentMA > previousMA ? 'rising' : (currentMA < previousMA ? 'falling' : 'flat');
+            
+            // Calculate recent performance
+            const recent20Period = prices.slice(-20);
+            const recentHigh = Math.max(...recent20Period);
+            const recentLow = Math.min(...recent20Period);
+            const recentRange = recentHigh - recentLow;
+            const volatility = recentRange / recentLow;
+            
+            // Calculate trend strength
+            const priceChange20 = (currentPrice - prices[length - 20]) / prices[length - 20];
+            const trendStrength = Math.abs(priceChange20) * 100;
+            
+            // Determine Weinstein stage
+            let stage;
+            let stageDescription;
+            let stageDetails;
+            
+            if (priceVsMA === 'below' && maTrend === 'falling') {
+                if (volatility < 0.05 && Math.abs(priceChange20) < 0.02) {
+                    // Low volatility, flat price action after decline
+                    stage = 1;
+                    stageDescription = 'Accumulation';
+                    stageDetails = 'Base building after decline, low volatility';
+                } else {
+                    // Still declining
+                    stage = 4;
+                    stageDescription = 'Declining';
+                    stageDetails = 'Downtrend continues, below MA';
+                }
+            } else if (priceVsMA === 'above' && maTrend === 'rising') {
+                if (currentPrice > recentLow * 1.1) {
+                    // Strong uptrend
+                    stage = 2;
+                    stageDescription = 'Advancing';
+                    stageDetails = 'Uptrend confirmed, above rising MA';
+                } else {
+                    // Late stage uptrend or topping
+                    stage = 3;
+                    stageDescription = 'Distribution';
+                    stageDetails = 'Potential topping, slowing momentum';
+                }
+            } else if (priceVsMA === 'above' && maTrend === 'flat') {
+                // Price above but MA flattening
+                stage = 3;
+                stageDescription = 'Distribution';
+                stageDetails = 'Sideways action at highs, MA flattening';
+            } else if (priceVsMA === 'below' && maTrend === 'flat') {
+                // Price below but MA flattening - could be basing
+                stage = 1;
+                stageDescription = 'Accumulation';
+                stageDetails = 'Potential base formation, MA stabilizing';
+            } else {
+                // Transition phase
+                if (priceChange20 > 0) {
+                    stage = 2;
+                    stageDescription = 'Advancing';
+                    stageDetails = 'Potential breakout phase';
+                } else {
+                    stage = 4;
+                    stageDescription = 'Declining';
+                    stageDetails = 'Potential breakdown phase';
+                }
+            }
+            
+            // Calculate stage duration (simplified)
+            const stageDuration = estimateStageDuration(prices, movingAverage, stage);
+            
+            // Determine trend direction
+            let trendDirection;
+            if (priceChange20 > 0.02) {
+                trendDirection = 'up';
+            } else if (priceChange20 < -0.02) {
+                trendDirection = 'down';
+            } else {
+                trendDirection = 'sideways';
+            }
+            
+            return {
+                stage: stage,
+                stageDescription: stageDescription,
+                stageDetails: stageDetails,
+                stageDuration: stageDuration,
+                trendDirection: trendDirection,
+                trendStrength: trendStrength,
+                currentPrice: currentPrice,
+                movingAverage: currentMA,
+                priceVsMA: priceVsMA,
+                maTrend: maTrend,
+                performance20Day: priceChange20 * 100,
+                volatility: volatility * 100,
+                priceData: priceData,
+                movingAverageData: movingAverage
+            };
+        }
+        
+        // Calculate moving average
+        function calculateMovingAverage(prices, period) {
+            const ma = [];
+            for (let i = period - 1; i < prices.length; i++) {
+                const sum = prices.slice(i - period + 1, i + 1).reduce((a, b) => a + b, 0);
+                ma.push(sum / period);
+            }
+            return ma;
+        }
+        
+        // Estimate stage duration (simplified)
+        function estimateStageDuration(prices, movingAverage, currentStage) {
+            // This is a simplified estimation
+            // In a real implementation, you'd track stage changes over time
+            const recentPeriods = Math.min(60, prices.length);
+            const recentPrices = prices.slice(-recentPeriods);
+            const recentMA = movingAverage.slice(-recentPeriods);
+            
+            let stageChanges = 0;
+            let currentStagePeriods = 0;
+            
+            for (let i = 1; i < recentPrices.length; i++) {
+                const prevCondition = recentPrices[i-1] > recentMA[i-1];
+                const currCondition = recentPrices[i] > recentMA[i];
+                
+                if (prevCondition !== currCondition) {
+                    stageChanges++;
+                    currentStagePeriods = 0;
+                }
+                currentStagePeriods++;
+            }
+            
+            return Math.max(currentStagePeriods, 1);
+        }
+        
+        // Create default stage data for failed calculations
+        function createDefaultStageData() {
+            return {
+                stage: 0,
+                stageDescription: 'Unknown',
+                stageDetails: 'Insufficient data for analysis',
+                stageDuration: 0,
+                trendDirection: 'unknown',
+                trendStrength: 0,
+                currentPrice: 0,
+                movingAverage: 0,
+                priceVsMA: 'unknown',
+                maTrend: 'unknown',
+                performance20Day: 0,
+                volatility: 0,
+                priceData: [],
+                movingAverageData: []
+            };
+        }
+        
+        // Apply filters
+        function applyFilters() {
+            // Get filter values
+            state.filters.stage = document.getElementById('stage-filter').value;
+            state.filters.sector = document.getElementById('sector-filter').value;
+            state.filters.trend = document.getElementById('trend-filter').value;
+            state.filters.search = document.getElementById('search-indices').value.toLowerCase().trim();
+            state.filters.sortBy = document.getElementById('sort-by').value;
+            
+            console.log('🔍 Applying stage analysis filters:', state.filters);
+            
+            // Apply filters
+            state.filteredIndices = state.allIndices.filter(index => {
+                const stageData = state.stageAnalysis[index.index_name];
+                if (!stageData) return false;
+                
+                if (state.filters.stage && stageData.stage.toString() !== state.filters.stage) return false;
+                if (state.filters.sector && index.sector !== state.filters.sector) return false;
+                if (state.filters.trend && stageData.trendDirection !== state.filters.trend) return false;
+                if (state.filters.search) {
+                    const searchTerm = state.filters.search;
+                    const searchableText = `${index.displayName} ${index.sector} ${index.industry}`.toLowerCase();
+                    if (!searchableText.includes(searchTerm)) return false;
+                }
+                return true;
+            });
+            
+            // Apply sorting
+            state.filteredIndices.sort((a, b) => {
+                const stageA = state.stageAnalysis[a.index_name];
+                const stageB = state.stageAnalysis[b.index_name];
+                
+                switch (state.filters.sortBy) {
+                    case 'stage':
+                        return stageA.stage - stageB.stage;
+                    case 'trend_strength':
+                        return stageB.trendStrength - stageA.trendStrength;
+                    case 'stage_duration':
+                        return stageB.stageDuration - stageA.stageDuration;
+                    case 'name':
+                        return a.displayName.localeCompare(b.displayName);
+                    case 'sector':
+                        return a.sector.localeCompare(b.sector);
+                    default:
+                        return stageA.stage - stageB.stage;
+                }
+            });
+            
+            console.log(`📊 Filtered to ${state.filteredIndices.length} indices`);
+            
+            // Re-render grid
+            renderIndicesGrid();
+            
+            // Update summary stats
+            updateStageSummary();
+        }
+        
+        // Render indices grid with stage analysis
+        function renderIndicesGrid() {
+            const grid = document.getElementById('indices-grid');
+            grid.innerHTML = '';
+            
+            if (state.filteredIndices.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #6b7280;">
+                        <h3>No indices found</h3>
+                        <p>Try adjusting your filters or search terms.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            state.filteredIndices.forEach(index => {
+                const stageData = state.stageAnalysis[index.index_name];
+                if (stageData) {
+                    const card = createStageAnalysisCard(index, stageData);
+                    grid.appendChild(card);
+                }
+            });
+        }
+        
+        // Create stage analysis card
+        function createStageAnalysisCard(index, stageData) {
+            const canvasId = `chart-${index.index_name.replace(/[^a-zA-Z0-9]/g, '-')}`;
+            const cardId = `card-${canvasId}`;
+            
+            const card = document.createElement('div');
+            card.className = `index-card stage-${stageData.stage}`;
+            card.id = cardId;
+            
+            const trendIcon = stageData.trendDirection === 'up' ? '📈' : 
+                             stageData.trendDirection === 'down' ? '📉' : '➡️';
+            
+            card.innerHTML = `
+                <div class="index-header">
+                    <div class="index-title">${index.displayName}</div>
+                    <div class="index-subtitle">
+                        <span>${index.sector} / ${index.industry}</span>
+                        <span class="constituent-count">${index.constituent_count} stocks</span>
+                    </div>
+                    <div class="stage-badge stage-${stageData.stage}">
+                        Stage ${stageData.stage}
+                    </div>
+                </div>
+                
+                <div class="index-chart-container">
+                    <canvas id="${canvasId}" class="index-chart"></canvas>
+                    <div class="chart-loading">
+                        <div class="loading-spinner" style="width: 1.5rem; height: 1.5rem; border-width: 2px;"></div>
+                    </div>
+                    <div class="chart-error" style="display: none;">
+                        Chart unavailable
+                    </div>
+                </div>
+                
+                <div class="stage-metrics">
+                    <div class="stage-metric">
+                        <div class="stage-metric-label">Stage</div>
+                        <div class="stage-metric-value">
+                            ${stageData.stageDescription}
+                            <div class="trend-indicator trend-${stageData.trendDirection}">
+                                ${trendIcon}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stage-metric">
+                        <div class="stage-metric-label">Duration</div>
+                        <div class="stage-metric-value">${stageData.stageDuration} periods</div>
+                    </div>
+                    <div class="stage-metric">
+                        <div class="stage-metric-label">Price vs MA</div>
+                        <div class="stage-metric-value">${stageData.priceVsMA === 'above' ? '↑' : '↓'} ${stageData.priceVsMA}</div>
+                    </div>
+                    <div class="stage-metric">
+                        <div class="stage-metric-label">Performance</div>
+                        <div class="stage-metric-value">
+                            <span class="trend-indicator ${stageData.performance20Day >= 0 ? 'trend-up' : 'trend-down'}">
+                                ${stageData.performance20Day >= 0 ? '+' : ''}${stageData.performance20Day.toFixed(1)}%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stage-details">
+                    <strong>Analysis:</strong> ${stageData.stageDetails}
+                </div>
+            `;
+            
+            // Render the chart
+            setTimeout(() => {
+                renderStageChart(index, stageData);
+            }, 100);
+            
+            return card;
+        }
+        
+        // Render stage analysis chart
+        function renderStageChart(index, stageData) {
+            const canvasId = `chart-${index.index_name.replace(/[^a-zA-Z0-9]/g, '-')}`;
+            const canvas = document.getElementById(canvasId);
+            
+            if (!canvas || !stageData.priceData || stageData.priceData.length === 0) {
+                showChartError(canvasId, 'No chart data available');
+                return;
+            }
+            
+            // Prepare chart data
+            const dates = stageData.priceData.map(item => {
+                const date = new Date(item.time);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            });
+            
+            const prices = stageData.priceData.map(item => item.index_value);
+            
+            // Prepare moving average data (align with price data)
+            const maData = [];
+            const maLength = stageData.movingAverageData.length;
+            const priceLength = prices.length;
+            const offset = priceLength - maLength;
+            
+            for (let i = 0; i < priceLength; i++) {
+                if (i < offset) {
+                    maData.push(null);
+                } else {
+                    maData.push(stageData.movingAverageData[i - offset]);
+                }
+            }
+            
+            // Choose colors based on stage
+            const stageColors = {
+                1: { price: '#94a3b8', ma: '#64748b', bg: 'rgba(148, 163, 184, 0.1)' },
+                2: { price: '#22c55e', ma: '#16a34a', bg: 'rgba(34, 197, 94, 0.1)' },
+                3: { price: '#f59e0b', ma: '#d97706', bg: 'rgba(245, 158, 11, 0.1)' },
+                4: { price: '#ef4444', ma: '#dc2626', bg: 'rgba(239, 68, 68, 0.1)' }
+            };
+            
+            const colors = stageColors[stageData.stage] || stageColors[1];
+            
+            // Create chart
+            const ctx = canvas.getContext('2d');
+            
+            // Destroy existing chart if any
+            if (state.charts[index.index_name]) {
+                state.charts[index.index_name].destroy();
+            }
+            
+            state.charts[index.index_name] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'Price',
+                            data: prices,
+                            borderColor: colors.price,
+                            backgroundColor: colors.bg,
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            pointHoverRadius: 4,
+                            tension: 0.1,
+                            fill: true,
+                            order: 1
+                        },
+                        {
+                            label: '30-Period MA',
+                            data: maData,
+                            borderColor: colors.ma,
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            pointHoverRadius: 4,
+                            tension: 0.1,
+                            fill: false,
+                            order: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 800,
+                        easing: 'easeInOutQuart'
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    return tooltipItems[0].label;
+                                },
+                                label: function(context) {
+                                    if (context.datasetIndex === 0) {
+                                        return `Price: ${context.raw.toFixed(2)}`;
+                                    } else {
+                                        return `30-MA: ${context.raw ? context.raw.toFixed(2) : 'N/A'}`;
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                maxTicksLimit: 6,
+                                font: {
+                                    size: 10
+                                },
+                                color: '#6b7280'
+                            }
+                        },
+                        y: {
+                            display: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                maxTicksLimit: 5,
+                                font: {
+                                    size: 10
+                                },
+                                color: '#6b7280',
+                                callback: function(value) {
+                                    return value.toFixed(0);
+                                }
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+            
+            // Hide loading spinner
+            const loadingEl = document.querySelector(`#card-${canvasId} .chart-loading`);
+            if (loadingEl) {
+                loadingEl.style.display = 'none';
+            }
+        }
+        
+        // Show chart error
+        function showChartError(canvasId, errorMessage) {
+            const loadingEl = document.querySelector(`#card-${canvasId} .chart-loading`);
+            const errorEl = document.querySelector(`#card-${canvasId} .chart-error`);
+            
+            if (loadingEl) loadingEl.style.display = 'none';
+            if (errorEl) {
+                errorEl.style.display = 'flex';
+                errorEl.textContent = errorMessage;
+            }
+        }
+        
+        // Update stage summary
+        function updateStageSummary() {
+            const stageCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
+            
+            state.filteredIndices.forEach(index => {
+                const stageData = state.stageAnalysis[index.index_name];
+                if (stageData && stageData.stage >= 1 && stageData.stage <= 4) {
+                    stageCounts[stageData.stage]++;
+                }
+            });
+            
+            document.getElementById('stage1-count').textContent = stageCounts[1];
+            document.getElementById('stage2-count').textContent = stageCounts[2];
+            document.getElementById('stage3-count').textContent = stageCounts[3];
+            document.getElementById('stage4-count').textContent = stageCounts[4];
+        }
+        
+        // Update filter options
+        function updateFilterOptions() {
+            const sectors = [...new Set(state.allIndices.map(i => i.sector))].sort();
+            
+            const sectorSelect = document.getElementById('sector-filter');
+            
+            // Clear and populate sector filter
+            sectorSelect.innerHTML = '<option value="">All Sectors</option>';
+            sectors.forEach(sector => {
+                const option = document.createElement('option');
+                option.value = sector;
+                option.textContent = sector;
+                sectorSelect.appendChild(option);
+            });
+        }
+        
+        // Update loading progress
+        function updateLoadingProgress(message, current, total) {
+            const loadingText = document.getElementById('loading-text');
+            const loadingProgress = document.getElementById('loading-progress');
+            
+            if (loadingText) {
+                loadingText.textContent = message;
+            }
+            
+            if (loadingProgress && total > 0) {
+                const percentage = Math.round((current / total) * 100);
+                loadingProgress.textContent = `${current}/${total} analyses completed (${percentage}%)`;
+            }
+        }
+        
+        // Utility functions
+        function extractSector(indexName) {
+            if (indexName.startsWith('SECTOR-INDUSTRY-')) {
+                const parts = indexName.replace('SECTOR-INDUSTRY-', '').split('-');
+                return parts[0] || '';
+            }
+            return '';
+        }
+        
+        function extractIndustry(indexName) {
+            if (indexName.startsWith('SECTOR-INDUSTRY-')) {
+                const parts = indexName.replace('SECTOR-INDUSTRY-', '').split('-');
+                return parts.slice(1).join('-') || '';
+            }
+            return '';
+        }
+        
+        function formatIndexName(name) {
+            if (name.startsWith('SECTOR-INDUSTRY-')) {
+                name = name.replace('SECTOR-INDUSTRY-', '');
+            }
+            return name.replace(/-/g, ' / ');
+        }
+        
+        function setLoading(loading) {
+            state.loading = loading;
+            document.getElementById('loading-container').style.display = loading ? 'block' : 'none';
+            document.getElementById('indices-grid').style.display = loading ? 'none' : 'grid';
+        }
+        
+        function setError(error) {
+            state.error = error;
+            const errorContainer = document.getElementById('error-container');
+            
+            if (error) {
+                document.getElementById('error-message').textContent = error;
+                errorContainer.style.display = 'block';
+                document.getElementById('indices-grid').style.display = 'none';
+            } else {
+                errorContainer.style.display = 'none';
+                if (!state.loading) {
+                    document.getElementById('indices-grid').style.display = 'grid';
+                }
+            }
+        }
+        
+        // Global functions
+        window.refreshStageAnalysis = async function() {
+            console.log('Refreshing stage analysis...');
+            
+            // Clear existing data
+            state.stageAnalysis = {};
+            Object.values(state.charts).forEach(chart => chart.destroy());
+            state.charts = {};
+            
+            // Reload analysis
+            await loadStageAnalysis();
+        };
+    </script>
+</body>
+</html>
