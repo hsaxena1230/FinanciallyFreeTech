@@ -153,6 +153,21 @@
             background-color: #1d4ed8;
         }
         
+        /* Drill-down instructions */
+        .drill-down-info {
+            background-color: #f0f9ff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border-left: 4px solid #0ea5e9;
+            margin-top: 1rem;
+        }
+        
+        .drill-down-info p {
+            font-size: 0.875rem;
+            color: #0369a1;
+            margin: 0;
+        }
+        
         /* Stage summary */
         .stage-summary {
             display: grid;
@@ -288,6 +303,7 @@
         .stage-badge.stage-3 { background-color: #f59e0b; }
         .stage-badge.stage-4 { background-color: #ef4444; }
         
+        /* Enhanced clickable constituent count */
         .constituent-count {
             background-color: #eef2ff;
             color: #1e40af;
@@ -295,6 +311,64 @@
             border-radius: 0.25rem;
             font-size: 0.75rem;
             font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .constituent-count:hover {
+            background-color: #1e40af;
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 2px 4px rgba(30, 64, 175, 0.3);
+            border-color: #1e40af;
+        }
+        
+        .constituent-count:active {
+            transform: scale(0.95);
+        }
+        
+        /* Add click indicator */
+        .constituent-count::after {
+            content: ' 🔍';
+            opacity: 0;
+            transition: opacity 0.2s;
+            font-size: 0.8em;
+        }
+        
+        .constituent-count:hover::after {
+            opacity: 1;
+        }
+        
+        /* Tooltip for constituent count */
+        .tooltip {
+            position: relative;
+        }
+        
+        .tooltip::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #1f2937;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+            z-index: 1000;
+            margin-bottom: 0.25rem;
+        }
+        
+        .tooltip:hover::before {
+            opacity: 1;
+            visibility: visible;
         }
         
         .index-chart-container {
@@ -391,6 +465,7 @@
             font-size: 0.75rem;
             color: #6b7280;
             margin-top: 0.5rem;
+            padding: 0 1rem 1rem;
         }
         
         /* Error states */
@@ -541,6 +616,13 @@
                     <input type="text" id="search-indices" placeholder="Search by name...">
                 </div>
             </div>
+            
+            <!-- Drill-down instructions -->
+            <div class="drill-down-info">
+                <p>
+                    💡 <strong>Drill-Down Feature:</strong> Click on the blue stock count badge in any index card to analyze individual stocks within that sector-industry combination using Weinstein's 4-stage methodology.
+                </p>
+            </div>
         </div>
 
         <!-- Stage Summary -->
@@ -665,6 +747,35 @@
                     applyFilters();
                 }, 300);
             });
+        }
+        
+        // NEW FUNCTION: Handle constituent count click to drill down to individual stocks
+        function handleConstituentClick(sector, industry, indexName, constituentCount) {
+            console.log(`🔍 Drilling down to individual stocks for ${sector} / ${industry}`);
+            
+            // Show feedback to user
+            const clickedElement = event.target;
+            const originalText = clickedElement.textContent;
+            clickedElement.textContent = 'Opening...';
+            clickedElement.style.pointerEvents = 'none';
+            
+            // Restore original text after a short delay
+            setTimeout(() => {
+                clickedElement.textContent = originalText;
+                clickedElement.style.pointerEvents = 'auto';
+            }, 1500);
+            
+            // Encode parameters for URL
+            const params = new URLSearchParams({
+                sector: sector,
+                industry: industry,
+                indexName: indexName,
+                constituentCount: constituentCount
+            });
+            
+            // Open new page for individual stock analysis
+            const url = `individual_stock_analysis.html?${params.toString()}`;
+            window.open(url, '_blank');
         }
         
         // Load stage analysis data
@@ -1042,7 +1153,7 @@
             });
         }
         
-        // Create stage analysis card
+        // Create stage analysis card (ENHANCED with clickable constituent count)
         function createStageAnalysisCard(index, stageData) {
             const canvasId = `chart-${index.index_name.replace(/[^a-zA-Z0-9]/g, '-')}`;
             const cardId = `card-${canvasId}`;
@@ -1059,7 +1170,11 @@
                     <div class="index-title">${index.displayName}</div>
                     <div class="index-subtitle">
                         <span>${index.sector} / ${index.industry}</span>
-                        <span class="constituent-count">${index.constituent_count} stocks</span>
+                        <span class="constituent-count tooltip" 
+                              data-tooltip="Click to analyze individual stocks"
+                              onclick="handleConstituentClick('${index.sector}', '${index.industry}', '${index.index_name}', ${index.constituent_count})">
+                            ${index.constituent_count} stocks
+                        </span>
                     </div>
                     <div class="stage-badge stage-${stageData.stage}">
                         Stage ${stageData.stage}
@@ -1398,6 +1513,9 @@
             // Reload analysis
             await loadStageAnalysis();
         };
+        
+        // Make handleConstituentClick global so it can be called from onclick handlers
+        window.handleConstituentClick = handleConstituentClick;
     </script>
 </body>
 </html>
