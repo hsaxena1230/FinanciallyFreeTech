@@ -1088,24 +1088,7 @@
             return card;
         }
         
-            // Apply filters and re-render grid immediately
-            applyFilters();
-            
-            // If search term is specific, automatically load charts for matching results
-            if (state.filters.search.length >= 3) {
-                console.log(`🔍 Searching for: "${state.filters.search}" - found ${state.filteredIndices.length} matches`);
-                
-                // If only a few results, load their charts immediately
-                if (state.filteredIndices.length <= 10) {
-                    setTimeout(() => {
-                        console.log(`⚡ Auto-loading charts for search results`);
-                        loadChartsData();
-                    }, 500);
-                }
-            }
-        }
-
-        // Enhanced apply filters function
+        // Apply filters and re-render grid immediately
         function applyFilters() {
             // Get filter values
             state.filters.sector = document.getElementById('sector-filter').value;
@@ -1445,6 +1428,47 @@
                 return null;
             }
         }
+        
+        // Test a problematic index function
+        async function testProblematicIndex() {
+            try {
+                console.log('🧪 Testing for problematic indices...');
+                
+                // First get all indices
+                const indicesData = await listAllIndices();
+                
+                if (indicesData && indicesData.success && indicesData.data) {
+                    // Look for problematic indices
+                    const problematicIndices = indicesData.data.filter(idx => 
+                        idx.index_name.includes('Consumer') || 
+                        idx.index_name.includes('Auto') ||
+                        idx.index_name.includes('Cyclical')
+                    );
+                    
+                    console.log(`🎯 Found ${problematicIndices.length} potentially problematic indices:`, problematicIndices);
+                    
+                    if (problematicIndices.length > 0) {
+                        // Test the first one
+                        const testIndex = problematicIndices[0];
+                        console.log(`🧪 Testing: ${testIndex.index_name}`);
+                        
+                        const result = await testSpecificIndex(testIndex.index_name);
+                        console.log(`🧪 Result:`, result);
+                        
+                        alert(`🧪 Tested "${testIndex.index_name}"\nSuccess: ${result.success}\nCheck console for details.`);
+                    } else {
+                        alert('🎯 No problematic indices found based on name patterns.');
+                    }
+                } else {
+                    alert('❌ Could not fetch indices list for testing.');
+                }
+                
+            } catch (error) {
+                console.error('💥 Error in testProblematicIndex:', error);
+                alert(`❌ Error testing: ${error.message}`);
+            }
+        }
+        
         async function showDebugInfo() {
             try {
                 let debugInfo = '<h4>🔍 Debug Information</h4>';
@@ -1527,19 +1551,6 @@
         function closeDebugModal() {
             document.getElementById('debug-modal').style.display = 'none';
         }
-            document.getElementById('debug-modal').style.display = 'none';
-        }
-        
-        // Global functions
-        window.refreshAllData = async function() {
-            console.log('Refreshing all data...');
-            // Clear existing charts
-            Object.values(state.charts).forEach(chart => chart.destroy());
-            state.charts = {};
-            
-            // Reload data
-            await loadAllIndices();
-        };
         
         // Global functions
         window.refreshAllData = async function() {

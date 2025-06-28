@@ -172,6 +172,121 @@
         background-color: #dc2626;
       }
 
+      /* Momentum vs Relative Strength Chart */
+      .momentum-chart-section {
+        background-color: white;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+        border-left: 4px solid #ea580c;
+      }
+      
+      .momentum-chart-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      .momentum-chart-title-area h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+      }
+      
+      .momentum-chart-subtitle {
+        font-size: 0.875rem;
+        color: #6b7280;
+      }
+      
+      .momentum-chart-toggle {
+        background-color: #ea580c;
+        color: white;
+        border: none;
+        border-radius: 0.375rem;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+      
+      .momentum-chart-toggle:hover {
+        background-color: #dc2626;
+      }
+      
+      .momentum-chart-content {
+        padding: 1.5rem;
+      }
+      
+      .momentum-chart-container {
+        height: 400px;
+        position: relative;
+        margin-bottom: 1rem;
+      }
+      
+      .momentum-chart-canvas {
+        width: 100%;
+        height: 100%;
+      }
+      
+      .momentum-chart-loading {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(255, 255, 255, 0.9);
+      }
+      
+      .momentum-chart-error {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #b91c1c;
+        font-size: 0.875rem;
+        background-color: #fef2f2;
+        text-align: center;
+      }
+      
+      .momentum-chart-legend {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        padding: 1rem;
+        background-color: #f9fafb;
+        border-radius: 0.5rem;
+      }
+      
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      
+      .legend-quadrant {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        flex-shrink: 0;
+      }
+      
+      .legend-item span {
+        font-size: 0.875rem;
+        color: #4b5563;
+      }
+
       /* Stage summary */
       .stage-summary {
         display: grid;
@@ -491,6 +606,20 @@
         .stock-metrics {
           grid-template-columns: 1fr 1fr;
         }
+        
+        .momentum-chart-header {
+          flex-direction: column;
+          gap: 1rem;
+          align-items: stretch;
+        }
+        
+        .momentum-chart-legend {
+          grid-template-columns: 1fr;
+        }
+        
+        .momentum-chart-container {
+          height: 300px;
+        }
       }
 
       @media (max-width: 480px) {
@@ -500,6 +629,10 @@
 
         .stage-summary {
           grid-template-columns: 1fr;
+        }
+        
+        .momentum-chart-container {
+          height: 250px;
         }
       }
 
@@ -616,6 +749,53 @@
         </div>
       </div>
 
+      <!-- Momentum vs Relative Strength Chart -->
+      <div class="momentum-chart-section" id="momentum-chart-section">
+        <div class="momentum-chart-header">
+          <div class="momentum-chart-title-area">
+            <h3>📊 Momentum vs Relative Strength Analysis</h3>
+            <div class="momentum-chart-subtitle" id="momentum-chart-subtitle">
+              Visual positioning of all stocks in this sector-industry combination
+            </div>
+          </div>
+          <button type="button" class="momentum-chart-toggle" id="momentum-chart-toggle">
+            📈 Show Chart
+          </button>
+        </div>
+        
+        <div class="momentum-chart-content" id="momentum-chart-content" style="display: none;">
+          <div class="momentum-chart-container">
+            <canvas id="momentum-chart-canvas" class="momentum-chart-canvas"></canvas>
+            <div class="momentum-chart-loading" id="momentum-chart-loading" style="display: none;">
+              <div class="loading-spinner" style="width: 1.5rem; height: 1.5rem; border-width: 2px;"></div>
+              <p style="margin-top: 0.5rem; font-size: 0.8rem;">Calculating momentum and relative strength...</p>
+            </div>
+            <div class="momentum-chart-error" id="momentum-chart-error" style="display: none;">
+              Unable to calculate momentum vs relative strength
+            </div>
+          </div>
+          
+          <div class="momentum-chart-legend">
+            <div class="legend-item">
+              <div class="legend-quadrant" style="background: linear-gradient(135deg, #22c55e, #16a34a);"></div>
+              <span><strong>Leaders:</strong> High Momentum + High Relative Strength</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-quadrant" style="background: linear-gradient(135deg, #f59e0b, #d97706);"></div>
+              <span><strong>Improving:</strong> High Momentum + Low Relative Strength</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-quadrant" style="background: linear-gradient(135deg, #94a3b8, #64748b);"></div>
+              <span><strong>Weakening:</strong> Low Momentum + High Relative Strength</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-quadrant" style="background: linear-gradient(135deg, #ef4444, #dc2626);"></div>
+              <span><strong>Laggards:</strong> Low Momentum + Low Relative Strength</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Stage Summary -->
       <div class="stage-summary" id="stage-summary">
         <div class="stage-summary-card stage-1">
@@ -701,6 +881,426 @@
         },
       };
 
+      // MOMENTUM VS RELATIVE STRENGTH CHART FUNCTIONALITY
+      
+      let momentumChart = null;
+      let momentumChartVisible = false;
+      
+      // Toggle momentum chart visibility
+      function toggleMomentumChart() {
+        const content = document.getElementById('momentum-chart-content');
+        const toggle = document.getElementById('momentum-chart-toggle');
+        
+        if (momentumChartVisible) {
+          // Hide chart
+          content.style.display = 'none';
+          toggle.textContent = '📈 Show Chart';
+          momentumChartVisible = false;
+          
+          // Destroy chart
+          if (momentumChart) {
+            momentumChart.destroy();
+            momentumChart = null;
+          }
+        } else {
+          // Show chart
+          content.style.display = 'block';
+          toggle.textContent = '📉 Hide Chart';
+          momentumChartVisible = true;
+          
+          // Generate chart
+          generateMomentumChart();
+        }
+      }
+      
+      // Generate momentum vs relative strength chart
+      async function generateMomentumChart() {
+        const loadingEl = document.getElementById('momentum-chart-loading');
+        const errorEl = document.getElementById('momentum-chart-error');
+        const canvas = document.getElementById('momentum-chart-canvas');
+        
+        try {
+          console.log('🚀 Generating momentum vs relative strength chart...');
+          
+          loadingEl.style.display = 'flex';
+          errorEl.style.display = 'none';
+          
+          // Check if we have stock data
+          if (!state.allStocks || state.allStocks.length === 0) {
+            throw new Error('No stock data available for momentum analysis');
+          }
+          
+          // Calculate momentum and relative strength
+          const analysisData = calculateMomentumAndRelativeStrength(state.allStocks);
+          
+          if (analysisData.length === 0) {
+            throw new Error('Insufficient data for momentum analysis');
+          }
+          
+          console.log(`✅ Calculated momentum data for ${analysisData.length} stocks`);
+          
+          // Render the chart
+          renderMomentumChart(analysisData, canvas);
+          
+          loadingEl.style.display = 'none';
+          
+        } catch (error) {
+          console.error('❌ Error generating momentum chart:', error);
+          loadingEl.style.display = 'none';
+          errorEl.style.display = 'flex';
+          errorEl.textContent = `Error: ${error.message}`;
+        }
+      }
+      
+      // Calculate momentum and relative strength for all stocks
+      function calculateMomentumAndRelativeStrength(stocks) {
+        console.log('📊 Calculating momentum and relative strength...');
+        
+        const validStocks = stocks.filter(stock => 
+          stock.performance_20_day !== undefined && 
+          stock.performance_20_day !== null &&
+          !isNaN(stock.performance_20_day)
+        );
+        
+        if (validStocks.length === 0) {
+          return [];
+        }
+        
+        // Calculate average performance for relative strength comparison
+        const avgPerformance = validStocks.reduce((sum, stock) => sum + stock.performance_20_day, 0) / validStocks.length;
+        
+        console.log(`📈 Average sector-industry performance: ${avgPerformance.toFixed(2)}%`);
+        
+        // Map stocks to chart data points
+        const chartData = validStocks.map(stock => {
+          const momentum = stock.performance_20_day || 0; // Y-axis: 20-day performance
+          const relativeStrength = momentum - avgPerformance; // X-axis: relative to average
+          
+          // Determine quadrant colors
+          let color;
+          if (momentum >= 0 && relativeStrength >= 0) {
+            color = '#22c55e'; // Leaders: Green
+          } else if (momentum >= 0 && relativeStrength < 0) {
+            color = '#f59e0b'; // Improving: Orange
+          } else if (momentum < 0 && relativeStrength >= 0) {
+            color = '#94a3b8'; // Weakening: Gray
+          } else {
+            color = '#ef4444'; // Laggards: Red
+          }
+          
+          // Determine point size based on market cap
+          const marketCap = stock.stock_info.market_cap || 0;
+          const pointRadius = Math.max(3, Math.min(15, marketCap / 1e8)); // Scale by market cap
+          
+          return {
+            x: relativeStrength,
+            y: momentum,
+            symbol: stock.stock_info.symbol.replace('.NS', ''),
+            company: stock.stock_info.company_name || stock.stock_info.symbol,
+            stage: stock.stage,
+            marketCap: marketCap,
+            color: color,
+            pointRadius: pointRadius
+          };
+        });
+        
+        console.log(`📊 Generated chart data for ${chartData.length} stocks`);
+        return chartData;
+      }
+      
+      // Render momentum vs relative strength scatter chart
+      function renderMomentumChart(analysisData, canvas) {
+        console.log('🎨 Rendering momentum vs relative strength chart...');
+        
+        // Destroy existing chart
+        if (momentumChart) {
+          momentumChart.destroy();
+        }
+        
+        // Prepare datasets by quadrant for better legend control
+        const leaders = analysisData.filter(d => d.y >= 0 && d.x >= 0);
+        const improving = analysisData.filter(d => d.y >= 0 && d.x < 0);
+        const weakening = analysisData.filter(d => d.y < 0 && d.x >= 0);
+        const laggards = analysisData.filter(d => d.y < 0 && d.x < 0);
+        
+        const datasets = [];
+        
+        if (leaders.length > 0) {
+          datasets.push({
+            label: `Leaders (${leaders.length})`,
+            data: leaders,
+            backgroundColor: '#22c55e',
+            borderColor: '#16a34a',
+            borderWidth: 2,
+            pointRadius: leaders.map(d => d.pointRadius),
+            pointHoverRadius: leaders.map(d => d.pointRadius + 2)
+          });
+        }
+        
+        if (improving.length > 0) {
+          datasets.push({
+            label: `Improving (${improving.length})`,
+            data: improving,
+            backgroundColor: '#f59e0b',
+            borderColor: '#d97706',
+            borderWidth: 2,
+            pointRadius: improving.map(d => d.pointRadius),
+            pointHoverRadius: improving.map(d => d.pointRadius + 2)
+          });
+        }
+        
+        if (weakening.length > 0) {
+          datasets.push({
+            label: `Weakening (${weakening.length})`,
+            data: weakening,
+            backgroundColor: '#94a3b8',
+            borderColor: '#64748b',
+            borderWidth: 2,
+            pointRadius: weakening.map(d => d.pointRadius),
+            pointHoverRadius: weakening.map(d => d.pointRadius + 2)
+          });
+        }
+        
+        if (laggards.length > 0) {
+          datasets.push({
+            label: `Laggards (${laggards.length})`,
+            data: laggards,
+            backgroundColor: '#ef4444',
+            borderColor: '#dc2626',
+            borderWidth: 2,
+            pointRadius: laggards.map(d => d.pointRadius),
+            pointHoverRadius: laggards.map(d => d.pointRadius + 2)
+          });
+        }
+        
+        const ctx = canvas.getContext('2d');
+        momentumChart = new Chart(ctx, {
+          type: 'scatter',
+          data: {
+            datasets: datasets
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              title: {
+                display: true,
+                text: `${state.sector} / ${state.industry} - Momentum vs Relative Strength`,
+                font: {
+                  size: 16,
+                  weight: 'bold'
+                },
+                color: '#1f2937'
+              },
+              legend: {
+                display: true,
+                position: 'top',
+                labels: {
+                  usePointStyle: true,
+                  padding: 20,
+                  font: {
+                    size: 12
+                  }
+                }
+              },
+              tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: 'white',
+                bodyColor: 'white',
+                borderColor: '#374151',
+                borderWidth: 1,
+                callbacks: {
+                  title: function(context) {
+                    return context[0].raw.symbol;
+                  },
+                  label: function(context) {
+                    const data = context.raw;
+                    return [
+                      `Company: ${data.company}`,
+                      `Momentum: ${data.y.toFixed(2)}%`,
+                      `Relative Strength: ${data.x.toFixed(2)}%`,
+                      `Stage: ${data.stage}`,
+                      `Market Cap: ₹${(data.marketCap / 1e7).toFixed(0)}Cr`
+                    ];
+                  }
+                }
+              },
+              // Custom plugin for quadrant watermarks
+              quadrantWatermarks: {
+                afterDraw: function(chart) {
+                  const ctx = chart.ctx;
+                  const chartArea = chart.chartArea;
+                  const centerX = (chartArea.left + chartArea.right) / 2;
+                  const centerY = (chartArea.top + chartArea.bottom) / 2;
+                  
+                  // Save the current context state
+                  ctx.save();
+                  
+                  // Set font properties for watermarks
+                  const fontSize = Math.min(chartArea.width, chartArea.height) / 12;
+                  ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif`;
+                  ctx.textAlign = 'center';
+                  ctx.textBaseline = 'middle';
+                  
+                  // Define quadrant positions and labels
+                  const quadrants = [
+                    {
+                      label: 'Leaders',
+                      x: centerX + (chartArea.right - centerX) / 2,
+                      y: centerY - (centerY - chartArea.top) / 2,
+                      color: 'rgba(34, 197, 94, 0.15)' // Green
+                    },
+                    {
+                      label: 'Improving',
+                      x: centerX - (centerX - chartArea.left) / 2,
+                      y: centerY - (centerY - chartArea.top) / 2,
+                      color: 'rgba(245, 158, 11, 0.15)' // Orange
+                    },
+                    {
+                      label: 'Weakening',
+                      x: centerX + (chartArea.right - centerX) / 2,
+                      y: centerY + (chartArea.bottom - centerY) / 2,
+                      color: 'rgba(148, 163, 184, 0.15)' // Gray
+                    },
+                    {
+                      label: 'Lagging',
+                      x: centerX - (centerX - chartArea.left) / 2,
+                      y: centerY + (chartArea.bottom - centerY) / 2,
+                      color: 'rgba(239, 68, 68, 0.15)' // Red
+                    }
+                  ];
+                  
+                  // Draw each quadrant watermark
+                  quadrants.forEach(quadrant => {
+                    ctx.fillStyle = quadrant.color;
+                    ctx.fillText(quadrant.label, quadrant.x, quadrant.y);
+                  });
+                  
+                  // Restore the context state
+                  ctx.restore();
+                }
+              }
+            },
+            scales: {
+              x: {
+                type: 'linear',
+                position: 'bottom',
+                title: {
+                  display: true,
+                  text: 'Relative Strength vs Sector Average (%)',
+                  font: {
+                    size: 14,
+                    weight: 'bold'
+                  }
+                },
+                grid: {
+                  color: function(context) {
+                    return context.tick.value === 0 ? '#374151' : '#e5e7eb';
+                  },
+                  lineWidth: function(context) {
+                    return context.tick.value === 0 ? 2 : 1;
+                  }
+                },
+                ticks: {
+                  callback: function(value) {
+                    return value.toFixed(1) + '%';
+                  }
+                }
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: '20-Day Momentum (%)',
+                  font: {
+                    size: 14,
+                    weight: 'bold'
+                  }
+                },
+                grid: {
+                  color: function(context) {
+                    return context.tick.value === 0 ? '#374151' : '#e5e7eb';
+                  },
+                  lineWidth: function(context) {
+                    return context.tick.value === 0 ? 2 : 1;
+                  }
+                },
+                ticks: {
+                  callback: function(value) {
+                    return value.toFixed(1) + '%';
+                  }
+                }
+              }
+            },
+            interaction: {
+              intersect: false,
+              mode: 'point'
+            },
+            elements: {
+              point: {
+                hoverBorderWidth: 3
+              }
+            }
+          },
+          plugins: [{
+            id: 'quadrantWatermarks',
+            afterDraw: function(chart) {
+              const ctx = chart.ctx;
+              const chartArea = chart.chartArea;
+              const centerX = (chartArea.left + chartArea.right) / 2;
+              const centerY = (chartArea.top + chartArea.bottom) / 2;
+              
+              // Save the current context state
+              ctx.save();
+              
+              // Set font properties for watermarks
+              const fontSize = Math.min(chartArea.width, chartArea.height) / 12;
+              ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif`;
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              
+              // Define quadrant positions and labels
+              const quadrants = [
+                {
+                  label: 'Leaders',
+                  x: centerX + (chartArea.right - centerX) / 2,
+                  y: centerY - (centerY - chartArea.top) / 2,
+                  color: 'rgba(34, 197, 94, 0.2)' // Green
+                },
+                {
+                  label: 'Improving',
+                  x: centerX - (centerX - chartArea.left) / 2,
+                  y: centerY - (centerY - chartArea.top) / 2,
+                  color: 'rgba(245, 158, 11, 0.2)' // Orange
+                },
+                {
+                  label: 'Weakening',
+                  x: centerX + (chartArea.right - centerX) / 2,
+                  y: centerY + (chartArea.bottom - centerY) / 2,
+                  color: 'rgba(148, 163, 184, 0.2)' // Gray
+                },
+                {
+                  label: 'Lagging',
+                  x: centerX - (centerX - chartArea.left) / 2,
+                  y: centerY + (chartArea.bottom - centerY) / 2,
+                  color: 'rgba(239, 68, 68, 0.2)' // Red
+                }
+              ];
+              
+              // Draw each quadrant watermark
+              quadrants.forEach(quadrant => {
+                ctx.fillStyle = quadrant.color;
+                ctx.fillText(quadrant.label, quadrant.x, quadrant.y);
+              });
+              
+              // Restore the context state
+              ctx.restore();
+            }
+          }]
+        });
+        
+        console.log('✅ Momentum chart rendered successfully');
+      }
+
       // Initialize the dashboard
       document.addEventListener("DOMContentLoaded", function () {
         console.log("Individual Stock Analysis Dashboard loaded");
@@ -774,6 +1374,11 @@
         document
           .getElementById("trend-filter")
           .addEventListener("change", applyFilters);
+        
+        // Momentum chart toggle
+        document
+          .getElementById("momentum-chart-toggle")
+          .addEventListener("click", toggleMomentumChart);
 
         // Search with debouncing
         const searchInput = document.getElementById("search-stocks");
@@ -849,6 +1454,15 @@
 
           // Load charts for visible stocks
           await loadStockCharts();
+          
+          // Auto-show momentum chart if we have enough stocks
+          if (state.allStocks.length >= 3) {
+            console.log('📊 Auto-showing momentum chart for sector-industry analysis');
+            // Auto-expand momentum chart for better insights
+            setTimeout(() => {
+              toggleMomentumChart();
+            }, 1000);
+          }
         } catch (error) {
           console.error("Error loading stock analysis:", error);
           setError(error.message);
@@ -909,15 +1523,6 @@
         console.log(
           `📊 Loading chart for ${stock.stock_info.symbol}, canvas: ${canvasId}`
         );
-
-        // Verify the canvas exists
-        const canvas = document.getElementById(canvasId);
-        if (!canvas) {
-          console.error(
-            `❌ Canvas ${canvasId} not found for ${stock.stock_info.symbol}`
-          );
-          return;
-        }
 
         try {
           // If the stock already has price data from the analysis, use it
@@ -1266,194 +1871,6 @@
         }
       }
 
-      // Fixed loadSingleStockChart function
-      async function loadSingleStockChart(stock) {
-        const canvasId = `chart-${stock.stock_info.symbol.replace(
-          /[^a-zA-Z0-9]/g,
-          "-"
-        )}`;
-
-        console.log(
-          `📊 Loading chart for ${stock.stock_info.symbol}, canvas: ${canvasId}`
-        );
-
-        try {
-          // If the stock already has price data from the analysis, use it
-          if (stock.price_data && stock.price_data.length > 0) {
-            console.log(
-              `✅ Using existing price data for ${stock.stock_info.symbol} (${stock.price_data.length} points)`
-            );
-            renderStockChart(stock);
-            return;
-          }
-
-          // Otherwise, fetch detailed price history
-          console.log(
-            `📡 Fetching detailed price history for ${stock.stock_info.symbol}`
-          );
-
-          const response = await fetch(
-            `${API_BASE_URL}/stocks/price_history_detailed?symbol=${encodeURIComponent(
-              stock.stock_info.symbol
-            )}&days=365`
-          );
-
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-
-          const data = await response.json();
-
-          if (data.success && data.data && data.data.price_history) {
-            console.log(
-              `✅ Fetched ${data.data.price_history.length} detailed price records for ${stock.stock_info.symbol}`
-            );
-            // Update stock with detailed price data
-            stock.detailed_price_data = data.data.price_history;
-            renderStockChart(stock);
-          } else {
-            console.warn(
-              `⚠️ No detailed price data for ${stock.stock_info.symbol}`
-            );
-            showStockChartError(stock, "No price data available");
-          }
-        } catch (error) {
-          console.error(
-            `💥 Error loading chart for ${stock.stock_info.symbol}:`,
-            error
-          );
-          showStockChartError(stock, `Error: ${error.message}`);
-        }
-      }
-
-      // Enhanced debugging function to check loading states
-      function debugLoadingStates() {
-        console.log("🔍 DEBUGGING LOADING STATES...");
-
-        const allLoadingElements = document.querySelectorAll(".chart-loading");
-        console.log(`Found ${allLoadingElements.length} loading elements:`);
-
-        allLoadingElements.forEach((el, index) => {
-          const isVisible =
-            el.style.display !== "none" &&
-            getComputedStyle(el).display !== "none";
-          const parentCard = el.closest(".stock-card");
-          const canvas = parentCard ? parentCard.querySelector("canvas") : null;
-          const canvasId = canvas ? canvas.id : "unknown";
-
-          console.log(
-            `  ${index + 1}. Canvas: ${canvasId}, Loading visible: ${isVisible}`
-          );
-
-          if (isVisible) {
-            console.log(`    ⚠️ Loading still visible for ${canvasId}`);
-            // Force hide it for debugging
-            el.style.display = "none";
-            console.log(`    🔧 Manually hidden loading for ${canvasId}`);
-          }
-        });
-
-        console.log("🔍 LOADING STATES DEBUG COMPLETE");
-      }
-
-      // Enhanced debugging function to check chart states
-      function debugChartStates() {
-        console.log("🔍 DEBUGGING CHART STATES...");
-
-        console.log(
-          `📊 Active charts in state: ${Object.keys(state.charts || {}).length}`
-        );
-
-        const allCanvases = document.querySelectorAll(".stock-chart");
-        console.log(`🎨 Canvas elements found: ${allCanvases.length}`);
-
-        allCanvases.forEach((canvas, index) => {
-          const hasChart =
-            state.charts &&
-            state.charts[canvas.id.replace("chart-", "").replace(/-/g, ".")];
-          const parentCard = canvas.closest(".stock-card");
-          const loadingEl = parentCard
-            ? parentCard.querySelector(".chart-loading")
-            : null;
-          const errorEl = parentCard
-            ? parentCard.querySelector(".chart-error")
-            : null;
-
-          const loadingVisible = loadingEl
-            ? loadingEl.style.display !== "none" &&
-              getComputedStyle(loadingEl).display !== "none"
-            : false;
-          const errorVisible = errorEl
-            ? errorEl.style.display !== "none" &&
-              getComputedStyle(errorEl).display !== "none"
-            : false;
-
-          console.log(`  ${index + 1}. Canvas: ${canvas.id}`);
-          console.log(`    - Has Chart: ${!!hasChart}`);
-          console.log(`    - Loading Visible: ${loadingVisible}`);
-          console.log(`    - Error Visible: ${errorVisible}`);
-
-          if (loadingVisible && hasChart) {
-            console.log(
-              `    ⚠️ ISSUE: Chart exists but loading still visible!`
-            );
-          }
-        });
-
-        console.log("🔍 CHART STATES DEBUG COMPLETE");
-      }
-
-      // Global debug functions
-      window.debugLoadingStates = debugLoadingStates;
-      window.debugChartStates = debugChartStates;
-
-      // Auto-hide any stuck loading spinners after 10 seconds
-      setTimeout(() => {
-        console.log("🧹 Auto-cleanup: Checking for stuck loading spinners...");
-
-        const stuckLoadingElements =
-          document.querySelectorAll(".chart-loading");
-        let hiddenCount = 0;
-
-        stuckLoadingElements.forEach((el) => {
-          if (
-            el.style.display !== "none" &&
-            getComputedStyle(el).display !== "none"
-          ) {
-            const parentCard = el.closest(".stock-card");
-            const canvas = parentCard
-              ? parentCard.querySelector("canvas")
-              : null;
-
-            if (canvas) {
-              // Check if chart actually exists
-              const symbol = canvas.id.replace("chart-", "").replace(/-/g, ".");
-              const hasChart = state.charts && state.charts[symbol];
-
-              if (hasChart) {
-                console.log(
-                  `🧹 Auto-hiding stuck loading spinner for ${symbol}`
-                );
-                el.style.display = "none";
-                hiddenCount++;
-              }
-            }
-          }
-        });
-
-        if (hiddenCount > 0) {
-          console.log(
-            `🧹 Auto-cleanup: Hidden ${hiddenCount} stuck loading spinners`
-          );
-        } else {
-          console.log("🧹 Auto-cleanup: No stuck loading spinners found");
-        }
-      }, 10000);
-
-      console.log("🔧 Individual stock chart loading fixes applied!");
-      console.log("📋 Debug functions available:");
-      console.log("  - debugLoadingStates() - Check loading spinner states");
-      console.log("  - debugChartStates() - Check chart render states");
       // Apply filters
       function applyFilters() {
         // Get filter values
