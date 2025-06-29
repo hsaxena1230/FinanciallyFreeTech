@@ -30,7 +30,7 @@ class StockAPI:
 
 stock_api = StockAPI()
 
-# ORIGINAL ENDPOINTS
+# BASIC STOCK DATA ENDPOINTS
 
 @app.route('/api/sectors', methods=['GET'])
 def get_sectors():
@@ -343,119 +343,6 @@ def get_stock_history():
             'error': str(e)
         }), 500
 
-@app.route('/api/stock_performance', methods=['GET'])
-def get_stock_performance():
-    """Get top and worst performing stocks based on 1-year price change"""
-    sector = request.args.get('sector', '')
-    industry = request.args.get('industry', '')
-    limit = int(request.args.get('limit', 10))  # Default to 10 stocks
-    period_days = int(request.args.get('period_days', 365))  # Default to 1 year
-    
-    try:
-        conn = stock_api.get_db_connection()
-        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-        
-        # Build dynamic query based on filters
-        where_conditions = ["sp.time >= NOW() - INTERVAL '%s days'"]
-        params = [period_days]
-        
-        if sector:
-            where_conditions.append("s.sector = %s")
-            params.append(sector)
-        
-        if industry:
-            where_conditions.append("s.industry = %s")
-            params.append(industry)
-        
-        where_clause = " AND ".join(where_conditions)
-        
-        # First, get all stocks with their oldest and most recent prices
-        base_query = f"""
-            WITH stock_prices_with_rank AS (
-                SELECT 
-                    sp.symbol,
-                    sp.time,
-                    sp.close_price,
-                    ROW_NUMBER() OVER (PARTITION BY sp.symbol ORDER BY sp.time ASC) as oldest_rank,
-                    ROW_NUMBER() OVER (PARTITION BY sp.symbol ORDER BY sp.time DESC) as newest_rank
-                FROM stock_prices sp
-                JOIN stocks s ON sp.symbol = s.symbol
-                WHERE {where_clause}
-            ),
-            oldest_prices AS (
-                SELECT symbol, close_price as oldest_price
-                FROM stock_prices_with_rank
-                WHERE oldest_rank = 1
-            ),
-            newest_prices AS (
-                SELECT symbol, close_price as newest_price
-                FROM stock_prices_with_rank
-                WHERE newest_rank = 1
-            ),
-            price_changes AS (
-                SELECT 
-                    n.symbol,
-                    n.newest_price,
-                    o.oldest_price,
-                    (n.newest_price - o.oldest_price) as absolute_change,
-                    ((n.newest_price - o.oldest_price) / o.oldest_price * 100) as percent_change
-                FROM newest_prices n
-                JOIN oldest_prices o ON n.symbol = o.symbol
-                WHERE o.oldest_price > 0  -- Prevent division by zero
-            )
-            SELECT 
-                pc.symbol,
-                s.company_name,
-                s.sector,
-                s.industry,
-                pc.newest_price as current_price,
-                pc.oldest_price as year_ago_price,
-                pc.absolute_change,
-                pc.percent_change,
-                s.market_cap
-            FROM price_changes pc
-            JOIN stocks s ON pc.symbol = s.symbol
-        """
-        
-        # Get top performing stocks (only profits)
-        top_query = base_query + " WHERE pc.percent_change > 0 ORDER BY pc.percent_change DESC LIMIT %s"
-        cursor.execute(top_query, params + [limit])
-        top_performers = cursor.fetchall()
-        
-        # Get worst performing stocks (only losses)
-        worst_query = base_query + " WHERE pc.percent_change < 0 ORDER BY pc.percent_change ASC LIMIT %s"
-        cursor.execute(worst_query, params + [limit])
-        worst_performers = cursor.fetchall()
-        
-        cursor.close()
-        conn.close()
-        
-        # Format results
-        for stock in top_performers + worst_performers:
-            if 'percent_change' in stock:
-                stock['percent_change'] = round(float(stock['percent_change']), 2)
-            if 'absolute_change' in stock:
-                stock['absolute_change'] = round(float(stock['absolute_change']), 2)
-            if 'current_price' in stock:
-                stock['current_price'] = round(float(stock['current_price']), 2)
-            if 'year_ago_price' in stock:
-                stock['year_ago_price'] = round(float(stock['year_ago_price']), 2)
-        
-        return jsonify({
-            'success': True,
-            'data': {
-                'top_performers': top_performers,
-                'worst_performers': worst_performers
-            }
-        })
-        
-    except Exception as e:
-        logger.error(f"Error fetching stock performance: {e}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
 # INDEX ENDPOINTS
 
 @app.route('/api/indices/types', methods=['GET'])
@@ -654,7 +541,7 @@ def get_sector_industry_combinations():
             'error': str(e)
         }), 500
 
-# NEW ENDPOINTS FOR INDIVIDUAL STOCK ANALYSIS
+# INDIVIDUAL STOCK ANALYSIS ENDPOINTS
 
 @app.route('/api/stocks/by_sector_industry', methods=['GET'])
 def get_stocks_by_sector_industry():

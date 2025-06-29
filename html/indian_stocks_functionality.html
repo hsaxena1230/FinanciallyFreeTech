@@ -195,6 +195,22 @@
             background-color: #3730a3;
         }
         
+        .action-button.secondary {
+            background-color: #10b981;
+        }
+        
+        .action-button.secondary:hover {
+            background-color: #059669;
+        }
+        
+        .action-button.tertiary {
+            background-color: #f59e0b;
+        }
+        
+        .action-button.tertiary:hover {
+            background-color: #d97706;
+        }
+        
         /* Results section */
         .results-section {
             background-color: white;
@@ -292,6 +308,104 @@
             overflow-x: auto;
         }
         
+        /* Modal/Popup styles for price chart */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 900px;
+            max-height: 90%;
+            overflow: auto;
+            position: relative;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .modal-subtitle {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            font-size: 1.5rem;
+            line-height: 1;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            transition: all 0.2s;
+        }
+        
+        .modal-close:hover {
+            color: #4b5563;
+            background-color: #f3f4f6;
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .price-chart-container {
+            height: 400px;
+            position: relative;
+        }
+        
+        .price-chart-loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .price-chart-error {
+            padding: 2rem;
+            font-size: 0.875rem;
+            color: #b91c1c;
+            text-align: center;
+            background-color: #fef2f2;
+            border-radius: 0.375rem;
+        }
+        
+        .price-chart-canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
         /* Index section */
         .index-section {
             background-color: white;
@@ -366,175 +480,6 @@
         }
         
         .index-canvas {
-            width: 100%;
-            height: 100%;
-        }
-        
-        .performance-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-        
-        .performance-header h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 0.25rem;
-        }
-        
-        .performance-subtitle {
-            font-size: 0.875rem;
-            color: #6b7280;
-        }
-        
-        .performance-close {
-            background: none;
-            border: none;
-            color: #9ca3af;
-            cursor: pointer;
-            font-size: 1.5rem;
-            line-height: 1;
-        }
-        
-        .performance-close:hover {
-            color: #4b5563;
-        }
-        
-        .performance-tabs {
-            display: flex;
-            border-bottom: 1px solid #e5e7eb;
-            margin-bottom: 1rem;
-        }
-        
-        .performance-tab {
-            padding: 0.5rem 1rem;
-            background: none;
-            border: none;
-            border-bottom: 2px solid transparent;
-            color: #6b7280;
-            font-weight: 500;
-            cursor: pointer;
-        }
-        
-        .performance-tab.active {
-            color: #4338ca;
-            border-bottom-color: #4338ca;
-        }
-        
-        .performance-content {
-            overflow: auto;
-        }
-        
-        .performance-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .performance-table th {
-            background-color: #f9fafb;
-            padding: 0.75rem 1rem;
-            text-align: left;
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        
-        .performance-table td {
-            padding: 0.75rem 1rem;
-            font-size: 0.875rem;
-            border-top: 1px solid #e5e7eb;
-        }
-        
-        .performance-table tr:hover {
-            background-color: #f9fafb;
-        }
-        
-        .change-positive {
-            color: #10b981;
-            font-weight: 500;
-        }
-        
-        .change-negative {
-            color: #ef4444;
-            font-weight: 500;
-        }
-        
-        .performance-loading {
-            padding: 2rem;
-            text-align: center;
-        }
-        
-        .performance-error {
-            padding: 1rem;
-            color: #b91c1c;
-            text-align: center;
-            background-color: #fee2e2;
-            border-radius: 0.375rem;
-            margin-top: 1rem;
-        }
-        
-        .price-chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-        
-        .price-chart-title-area h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 0.25rem;
-        }
-        
-        .price-chart-subtitle {
-            font-size: 0.875rem;
-            color: #6b7280;
-        }
-        
-        .price-chart-close {
-            background: none;
-            border: none;
-            color: #9ca3af;
-            cursor: pointer;
-            font-size: 1.5rem;
-            line-height: 1;
-        }
-        
-        .price-chart-close:hover {
-            color: #4b5563;
-        }
-        
-        .price-chart-container {
-            height: 300px;
-            position: relative;
-        }
-        
-        .price-chart-loading {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(255, 255, 255, 0.8);
-        }
-        
-        .price-chart-error {
-            padding: 2rem;
-            font-size: 0.875rem;
-            color: #b91c1c;
-            text-align: center;
-            display: none;
-        }
-        
-        .price-chart-canvas {
             width: 100%;
             height: 100%;
         }
@@ -620,6 +565,23 @@
                 flex-direction: column;
                 gap: 0.75rem;
                 align-items: flex-start;
+            }
+            
+            .modal-content {
+                width: 95%;
+                max-height: 95%;
+            }
+            
+            .modal-header {
+                padding: 1rem;
+            }
+            
+            .modal-body {
+                padding: 1rem;
+            }
+            
+            .price-chart-container {
+                height: 300px;
             }
         }
     </style>
@@ -710,19 +672,19 @@
                 
                 <div class="filter-group" style="display: flex; align-items: flex-end;">
                     <button id="show-chart-btn" class="action-button">
-                        Show Price Chart
+                        📈 Show Price Chart
                     </button>
                 </div>
                 
                 <div class="filter-group" style="display: flex; align-items: flex-end;">
-                    <button id="show-performance-btn" class="action-button" style="background-color: #10b981;">
-                        Top/Worst Performers
+                    <button id="show-index-btn" class="action-button tertiary">
+                        📊 Sector-Industry Index
                     </button>
                 </div>
                 
                 <div class="filter-group" style="display: flex; align-items: flex-end;">
-                    <button id="show-index-btn" class="action-button" style="background-color: #f59e0b;">
-                        Sector-Industry Index
+                    <button id="open-indices-dashboard-btn" class="action-button secondary">
+                        🚀 Indices Dashboard
                     </button>
                 </div>
             </div>
@@ -776,91 +738,6 @@
             </div>
         </div>
         
-        <!-- Price chart section (hidden by default) -->
-        <div class="price-chart-section" id="price-chart-section">
-            <div class="price-chart-header">
-                <div class="price-chart-title-area">
-                    <h3 id="chart-title">Stock Price History</h3>
-                    <div class="price-chart-subtitle" id="chart-subtitle">Select a stock to view price history</div>
-                </div>
-                <button type="button" class="price-chart-close" id="chart-close-btn">×</button>
-            </div>
-            <div class="price-chart-container">
-                <canvas id="price-chart-canvas" class="price-chart-canvas"></canvas>
-                <div class="price-chart-loading" id="chart-loading" style="display: none;">
-                    <div class="loading-spinner"></div>
-                </div>
-                <div class="price-chart-error" id="chart-error" style="display: none;">
-                    No price history available
-                </div>
-            </div>
-        </div>
-        
-        <!-- Performance section (hidden by default) -->
-        <div class="performance-section" id="performance-section">
-            <div class="performance-header">
-                <div class="performance-title-area">
-                    <h3>Stock Performance (1 Year)</h3>
-                    <div class="performance-subtitle" id="performance-subtitle">Showing top and worst performers</div>
-                </div>
-                <button type="button" class="performance-close" id="performance-close-btn">×</button>
-            </div>
-            
-            <div class="performance-tabs">
-                <button type="button" class="performance-tab active" id="top-performers-tab">Top Performers</button>
-                <button type="button" class="performance-tab" id="worst-performers-tab">Worst Performers</button>
-            </div>
-            
-            <div class="performance-content">
-                <!-- Loading indicator (hidden by default) -->
-                <div class="performance-loading" id="performance-loading" style="display: none;">
-                    <div class="loading-spinner"></div>
-                    <p>Loading performance data...</p>
-                </div>
-                
-                <!-- Error message (hidden by default) -->
-                <div class="performance-error" id="performance-error" style="display: none;">
-                    Unable to load performance data
-                </div>
-                
-                <!-- Top performers table (visible by default) -->
-                <div id="top-performers-content">
-                    <table class="performance-table" id="top-performers-table">
-                        <thead>
-                            <tr>
-                                <th>Symbol</th>
-                                <th>Company</th>
-                                <th>Current Price</th>
-                                <th>Year Ago</th>
-                                <th>Change (%)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="top-performers-body">
-                            <!-- Will be populated dynamically -->
-                        </tbody>
-                    </table>
-                </div>
-                
-                <!-- Worst performers table (hidden by default) -->
-                <div id="worst-performers-content" style="display: none;">
-                    <table class="performance-table" id="worst-performers-table">
-                        <thead>
-                            <tr>
-                                <th>Symbol</th>
-                                <th>Company</th>
-                                <th>Current Price</th>
-                                <th>Year Ago</th>
-                                <th>Change (%)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="worst-performers-body">
-                            <!-- Will be populated dynamically -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        
         <!-- Index section (hidden by default) -->
         <div class="index-section" id="index-section">
             <div class="index-header">
@@ -892,6 +769,31 @@
             </div>
         </div>
     </main>
+
+    <!-- Price Chart Modal -->
+    <div class="modal-overlay" id="price-chart-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-title" id="chart-title">Stock Price History</div>
+                    <div class="modal-subtitle" id="chart-subtitle">Select a stock to view price history</div>
+                </div>
+                <button type="button" class="modal-close" id="chart-close-btn">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="price-chart-container">
+                    <canvas id="price-chart-canvas" class="price-chart-canvas"></canvas>
+                    <div class="price-chart-loading" id="chart-loading" style="display: none;">
+                        <div class="loading-spinner"></div>
+                        <p style="margin-top: 1rem; color: #6b7280;">Loading price data...</p>
+                    </div>
+                    <div class="price-chart-error" id="chart-error" style="display: none;">
+                        No price history available
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <footer>
         <div class="container">
@@ -957,8 +859,8 @@
                 clearFiltersBtn: document.getElementById('clear-filters'),
                 stockSelect: document.getElementById('stock-select'),
                 showChartBtn: document.getElementById('show-chart-btn'),
-                showPerformanceBtn: document.getElementById('show-performance-btn'),
                 showIndexBtn: document.getElementById('show-index-btn'),
+                openIndicesDashboardBtn: document.getElementById('open-indices-dashboard-btn'),
                 
                 // Results elements
                 resultsTitle: document.getElementById('results-title'),
@@ -971,27 +873,14 @@
                 paginationInfo: document.getElementById('pagination-info'),
                 paginationControls: document.getElementById('pagination-controls'),
                 
-                // Chart elements
-                priceChartSection: document.getElementById('price-chart-section'),
+                // Modal elements
+                priceChartModal: document.getElementById('price-chart-modal'),
                 chartTitle: document.getElementById('chart-title'),
                 chartSubtitle: document.getElementById('chart-subtitle'),
                 chartCanvas: document.getElementById('price-chart-canvas'),
                 chartLoading: document.getElementById('chart-loading'),
                 chartError: document.getElementById('chart-error'),
                 chartCloseBtn: document.getElementById('chart-close-btn'),
-                
-                // Performance elements
-                performanceSection: document.getElementById('performance-section'),
-                performanceSubtitle: document.getElementById('performance-subtitle'),
-                performanceLoading: document.getElementById('performance-loading'),
-                performanceError: document.getElementById('performance-error'),
-                topPerformersTab: document.getElementById('top-performers-tab'),
-                worstPerformersTab: document.getElementById('worst-performers-tab'),
-                topPerformersContent: document.getElementById('top-performers-content'),
-                worstPerformersContent: document.getElementById('worst-performers-content'),
-                topPerformersBody: document.getElementById('top-performers-body'),
-                worstPerformersBody: document.getElementById('worst-performers-body'),
-                performanceCloseBtn: document.getElementById('performance-close-btn'),
                 
                 // Index elements
                 indexSection: document.getElementById('index-section'),
@@ -1005,20 +894,6 @@
             
             console.log('Elements loaded:', elements);
             
-            // Check if required elements exist
-            const requiredElements = [
-                'sectorSelect', 'industrySelect', 'stockSelect', 'showChartBtn', 'showIndexBtn',
-                'priceChartSection', 'chartTitle', 'chartCanvas',
-                'performanceSection', 'topPerformersTab', 'worstPerformersTab',
-                'indexSection', 'indexNameSelect', 'indexCanvas'
-            ];
-            
-            for (const element of requiredElements) {
-                if (!elements[element]) {
-                    console.error(`Required element ${element} not found!`);
-                }
-            }
-            
             // Add event listeners
             elements.sectorSelect.addEventListener('change', e => handleSectorChange(e, elements));
             elements.industrySelect.addEventListener('change', e => handleIndustryChange(e, elements));
@@ -1027,18 +902,20 @@
             elements.clearSearchBtn.addEventListener('click', () => clearSearch(elements));
             elements.clearFiltersBtn.addEventListener('click', () => clearFilters(elements));
             elements.showChartBtn.addEventListener('click', () => showStockChart(elements));
-            elements.chartCloseBtn.addEventListener('click', () => hideChartSection(elements));
-            
-            // Performance tab event listeners
-            elements.showPerformanceBtn.addEventListener('click', () => fetchAndShowPerformance(elements));
-            elements.performanceCloseBtn.addEventListener('click', () => hidePerformanceSection(elements));
-            elements.topPerformersTab.addEventListener('click', () => switchPerformanceTab('top', elements));
-            elements.worstPerformersTab.addEventListener('click', () => switchPerformanceTab('worst', elements));
+            elements.chartCloseBtn.addEventListener('click', () => hideChartModal(elements));
+            elements.openIndicesDashboardBtn.addEventListener('click', () => openIndicesDashboard());
             
             // Index event listeners
             elements.showIndexBtn.addEventListener('click', () => showIndexSection(elements));
             elements.indexCloseBtn.addEventListener('click', () => hideIndexSection(elements));
             elements.indexNameSelect.addEventListener('change', () => handleIndexNameChange(elements));
+            
+            // Modal close on overlay click
+            elements.priceChartModal.addEventListener('click', (e) => {
+                if (e.target === elements.priceChartModal) {
+                    hideChartModal(elements);
+                }
+            });
             
             // Set current year in footer
             document.getElementById('current-year').textContent = new Date().getFullYear();
@@ -1047,6 +924,11 @@
             fetchSectors(elements);
             fetchStats(elements);
             fetchCompanies(state.selectedSector, state.selectedIndustry, state.pagination.page, state.pagination.limit, elements);
+        }
+        
+        // Open Indices Dashboard
+        function openIndicesDashboard() {
+            window.open('sector_industry_indices_dashboard.html', '_blank');
         }
         
         // INDEX FUNCTIONALITY
@@ -1296,9 +1178,9 @@
             return name;
         }
         
-        // REST OF THE ORIGINAL FUNCTIONS
+        // PRICE CHART MODAL FUNCTIONALITY
         
-        // Show stock chart for the selected stock
+        // Show stock chart for the selected stock (as modal)
         function showStockChart(elements) {
             const symbol = elements.stockSelect.value;
             if (!symbol) {
@@ -1307,8 +1189,190 @@
             }
             
             const companyName = elements.stockSelect.options[elements.stockSelect.selectedIndex].text;
-            showStockPriceChart(symbol, companyName, elements);
+            showStockPriceChartModal(symbol, companyName, elements);
         }
+        
+        // Show stock price chart in modal
+        async function showStockPriceChartModal(symbol, companyName, elements) {
+            console.log('Showing price chart modal for', symbol);
+            
+            // Update current symbol
+            state.priceChart.currentSymbol = symbol;
+            
+            // Update chart title and subtitle
+            elements.chartTitle.textContent = `${companyName || symbol} Price History`;
+            elements.chartSubtitle.textContent = 'Loading price data...';
+            
+            // Show the modal
+            elements.priceChartModal.style.display = 'flex';
+            elements.chartLoading.style.display = 'flex';
+            elements.chartError.style.display = 'none';
+            
+            // Fetch price history data
+            const priceData = await fetchStockPriceHistory(symbol, elements);
+            
+            console.log('Received price data for', symbol, ':', priceData);
+            
+            if (priceData && priceData.length > 0) {
+                elements.chartSubtitle.textContent = `Last ${priceData.length} days of price data`;
+                renderPriceChart(priceData, elements);
+            } else {
+                // Show error if no data
+                elements.chartSubtitle.textContent = 'No price data available';
+                elements.chartError.style.display = 'block';
+            }
+        }
+        
+        // Hide the chart modal
+        function hideChartModal(elements) {
+            console.log('Hiding chart modal');
+            elements.priceChartModal.style.display = 'none';
+            state.priceChart.currentSymbol = null;
+            
+            // Destroy existing chart if any
+            if (state.priceChart.chart) {
+                state.priceChart.chart.destroy();
+                state.priceChart.chart = null;
+            }
+        }
+        
+        // Fetch stock price history
+        async function fetchStockPriceHistory(symbol, elements) {
+            if (!symbol) return null;
+            
+            // Set chart loading state
+            state.priceChart.loading = true;
+            state.priceChart.error = null;
+            elements.chartLoading.style.display = 'flex';
+            elements.chartError.style.display = 'none';
+            
+            try {
+                // Call the stock_history API endpoint
+                const response = await fetch(`${API_BASE_URL}/stock_history?symbol=${encodeURIComponent(symbol)}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success && data.data && data.data.length > 0) {
+                    state.priceChart.loading = false;
+                    elements.chartLoading.style.display = 'none';
+                    return data.data;
+                } else {
+                    state.priceChart.loading = false;
+                    state.priceChart.error = 'No price history available';
+                    elements.chartLoading.style.display = 'none';
+                    elements.chartError.style.display = 'block';
+                    return null;
+                }
+            } catch (err) {
+                console.error('Error fetching stock price history:', err);
+                state.priceChart.loading = false;
+                state.priceChart.error = 'Failed to load price history';
+                elements.chartLoading.style.display = 'none';
+                elements.chartError.style.display = 'block';
+                return null;
+            }
+        }
+        
+        // Render price chart in modal
+        function renderPriceChart(priceData, elements) {
+            console.log('Rendering chart with price data:', priceData);
+            
+            // Destroy existing chart if any
+            if (state.priceChart.chart) {
+                state.priceChart.chart.destroy();
+            }
+            
+            // Prepare data for the chart - sort by date ascending
+            priceData.sort((a, b) => new Date(a.time) - new Date(b.time));
+            
+            const dates = priceData.map(item => new Date(item.time).toLocaleDateString());
+            const prices = priceData.map(item => parseFloat(item.close_price));
+            
+            console.log('Processed data for chart:', { dates, prices });
+            
+            // Create the chart
+            const ctx = elements.chartCanvas.getContext('2d');
+            state.priceChart.chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Close Price',
+                        data: prices,
+                        borderColor: '#4338ca',
+                        backgroundColor: 'rgba(67, 56, 202, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 2,
+                        pointHoverRadius: 6,
+                        pointHoverBackgroundColor: '#4338ca',
+                        pointHoverBorderColor: '#ffffff',
+                        pointHoverBorderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return `₹${context.raw.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            },
+                            ticks: {
+                                maxTicksLimit: 8,
+                                maxRotation: 0
+                            }
+                        },
+                        y: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Price (₹)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return `₹${value}`;
+                                }
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    },
+                    elements: {
+                        line: {
+                            tension: 0.4
+                        }
+                    }
+                }
+            });
+        }
+        
+        // REST OF THE ORIGINAL FUNCTIONS (without performance functionality)
         
         // Fetch sectors from API
         async function fetchSectors(elements) {
@@ -1417,197 +1481,6 @@
             } finally {
                 setLoading(false, elements);
             }
-        }
-        
-        // Fetch stock price history
-        async function fetchStockPriceHistory(symbol, elements) {
-            if (!symbol) return null;
-            
-            // Set chart loading state
-            state.priceChart.loading = true;
-            state.priceChart.error = null;
-            elements.chartLoading.style.display = 'flex';
-            elements.chartError.style.display = 'none';
-            
-            try {
-                // Call the stock_history API endpoint
-                const response = await fetch(`${API_BASE_URL}/stock_history?symbol=${encodeURIComponent(symbol)}`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                if (data.success && data.data && data.data.length > 0) {
-                    state.priceChart.loading = false;
-                    elements.chartLoading.style.display = 'none';
-                    return data.data;
-                } else {
-                    state.priceChart.loading = false;
-                    state.priceChart.error = 'No price history available';
-                    elements.chartLoading.style.display = 'none';
-                    elements.chartError.style.display = 'block';
-                    return null;
-                }
-            } catch (err) {
-                console.error('Error fetching stock price history:', err);
-                state.priceChart.loading = false;
-                state.priceChart.error = 'Failed to load price history';
-                elements.chartLoading.style.display = 'none';
-                elements.chartError.style.display = 'block';
-                return null;
-            }
-        }
-        
-        // Show stock price chart
-        async function showStockPriceChart(symbol, companyName, elements) {
-            console.log('Showing price chart for', symbol);
-            
-            // Make sure elements exist before trying to access them
-            if (!elements.priceChartSection) {
-                console.error('Chart section not found!');
-                return;
-            }
-
-            // Update current symbol
-            state.priceChart.currentSymbol = symbol;
-            
-            // Update chart title and subtitle
-            elements.chartTitle.textContent = `${companyName || symbol} Price History`;
-            elements.chartSubtitle.textContent = 'Loading price data...';
-            
-            // Show the chart section
-            elements.priceChartSection.style.display = 'block';
-            elements.chartLoading.style.display = 'flex';
-            elements.chartError.style.display = 'none';
-            
-            // Scroll to the chart section
-            elements.priceChartSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            
-            // Fetch price history data
-            const priceData = await fetchStockPriceHistory(symbol, elements);
-            
-            // Debug: Log the received data
-            console.log('Received price data for', symbol, ':', priceData);
-            
-            if (priceData && priceData.length > 0) {
-                elements.chartSubtitle.textContent = `Last ${priceData.length} days of price data`;
-                renderPriceChart(priceData, elements);
-            } else {
-                // Show error if no data
-                elements.chartSubtitle.textContent = 'No price data available';
-                elements.chartError.style.display = 'block';
-            }
-        }
-        
-        // Hide the chart section
-        function hideChartSection(elements) {
-            console.log('Hiding chart section');
-            elements.priceChartSection.style.display = 'none';
-            state.priceChart.currentSymbol = null;
-            
-            // Destroy existing chart if any
-            if (state.priceChart.chart) {
-                state.priceChart.chart.destroy();
-                state.priceChart.chart = null;
-            }
-        }
-        
-        // Render price chart
-        function renderPriceChart(priceData, elements) {
-            // Add debugging
-            console.log('Rendering chart with price data:', priceData);
-            
-            // Destroy existing chart if any
-            if (state.priceChart.chart) {
-                state.priceChart.chart.destroy();
-            }
-            
-            // Prepare data for the chart - sort by date ascending
-            priceData.sort((a, b) => new Date(a.time) - new Date(b.time));
-            
-            const dates = priceData.map(item => new Date(item.time).toLocaleDateString());
-            const prices = priceData.map(item => parseFloat(item.close_price));
-            
-            console.log('Processed data for chart:', { dates, prices });
-            
-            // Create the chart
-            const ctx = elements.chartCanvas.getContext('2d');
-            state.priceChart.chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: dates,
-                    datasets: [{
-                        label: 'Close Price',
-                        data: prices,
-                        borderColor: '#4338ca',
-                        backgroundColor: 'rgba(67, 56, 202, 0.1)',
-                        borderWidth: 2,
-                        pointRadius: 2,
-                        pointHoverRadius: 6,
-                        pointHoverBackgroundColor: '#4338ca',
-                        pointHoverBorderColor: '#ffffff',
-                        pointHoverBorderWidth: 2,
-                        tension: 0.3,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top'
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            callbacks: {
-                                label: function(context) {
-                                    return `₹${context.raw.toFixed(2)}`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            display: true,
-                            title: {
-                                display: true,
-                                text: 'Date'
-                            },
-                            ticks: {
-                                maxTicksLimit: 8,
-                                maxRotation: 0
-                            }
-                        },
-                        y: {
-                            display: true,
-                            title: {
-                                display: true,
-                                text: 'Price (₹)'
-                            },
-                            ticks: {
-                                callback: function(value) {
-                                    return `₹${value}`;
-                                }
-                            }
-                        }
-                    },
-                    interaction: {
-                        mode: 'nearest',
-                        axis: 'x',
-                        intersect: false
-                    },
-                    elements: {
-                        line: {
-                            tension: 0.4
-                        }
-                    }
-                }
-            });
         }
         
         // Fetch statistics
@@ -1841,172 +1714,6 @@
             } else {
                 elements.errorMessage.style.display = 'none';
             }
-        }
-        
-        // Fetch and show performance data
-        async function fetchAndShowPerformance(elements) {
-            // Show performance section
-            elements.performanceSection.style.display = 'block';
-            elements.performanceLoading.style.display = 'block';
-            elements.performanceError.style.display = 'none';
-            elements.topPerformersContent.style.display = 'none';
-            elements.worstPerformersContent.style.display = 'none';
-            
-            // Update subtitle
-            let subtitle = 'Showing';
-            if (state.selectedSector) {
-                subtitle += ` for ${state.selectedSector} sector`;
-                if (state.selectedIndustry) {
-                    subtitle += `, ${state.selectedIndustry} industry`;
-                }
-            } else {
-                subtitle += ' for all sectors';
-            }
-            elements.performanceSubtitle.textContent = subtitle;
-            
-            // Scroll to the performance section
-            elements.performanceSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            
-            try {
-                // Fetch performance data
-                let url = `${API_BASE_URL}/stock_performance?limit=10`;
-                
-                if (state.selectedSector) {
-                    url += `&sector=${encodeURIComponent(state.selectedSector)}`;
-                }
-                
-                if (state.selectedIndustry) {
-                    url += `&industry=${encodeURIComponent(state.selectedIndustry)}`;
-                }
-                
-                const response = await fetch(url);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                if (data.success && data.data) {
-                    // Populate performance tables
-                    populatePerformanceTables(data.data, elements);
-                    
-                    // Show content based on active tab
-                    if (elements.topPerformersTab.classList.contains('active')) {
-                        elements.topPerformersContent.style.display = 'block';
-                    } else {
-                        elements.worstPerformersContent.style.display = 'block';
-                    }
-                    
-                    elements.performanceLoading.style.display = 'none';
-                } else {
-                    throw new Error('Failed to get performance data');
-                }
-            } catch (err) {
-                console.error('Error fetching stock performance:', err);
-                elements.performanceLoading.style.display = 'none';
-                elements.performanceError.style.display = 'block';
-                elements.performanceError.textContent = `Error: ${err.message}`;
-            }
-        }
-        
-        // Populate performance tables
-        function populatePerformanceTables(data, elements) {
-            // Clear existing data
-            elements.topPerformersBody.innerHTML = '';
-            elements.worstPerformersBody.innerHTML = '';
-            
-            // Populate top performers
-            data.top_performers.forEach(stock => {
-                const row = document.createElement('tr');
-                
-                // Symbol
-                const symbolCell = document.createElement('td');
-                symbolCell.className = 'symbol-cell';
-                symbolCell.textContent = stock.symbol.replace('.NS', '');
-                row.appendChild(symbolCell);
-                
-                // Company name
-                const nameCell = document.createElement('td');
-                nameCell.textContent = stock.company_name || 'N/A';
-                row.appendChild(nameCell);
-                
-                // Current price
-                const currentPriceCell = document.createElement('td');
-                currentPriceCell.textContent = `₹${stock.current_price}`;
-                row.appendChild(currentPriceCell);
-                
-                // Year ago price
-                const yearAgoPriceCell = document.createElement('td');
-                yearAgoPriceCell.textContent = `₹${stock.year_ago_price}`;
-                row.appendChild(yearAgoPriceCell);
-                
-                // Percent change
-                const changeCell = document.createElement('td');
-                const changeValue = stock.percent_change;
-                const changeText = `${changeValue > 0 ? '+' : ''}${changeValue}%`;
-                changeCell.textContent = changeText;
-                changeCell.className = changeValue >= 0 ? 'change-positive' : 'change-negative';
-                row.appendChild(changeCell);
-                
-                elements.topPerformersBody.appendChild(row);
-            });
-            
-            // Populate worst performers
-            data.worst_performers.forEach(stock => {
-                const row = document.createElement('tr');
-                
-                // Symbol
-                const symbolCell = document.createElement('td');
-                symbolCell.className = 'symbol-cell';
-                symbolCell.textContent = stock.symbol.replace('.NS', '');
-                row.appendChild(symbolCell);
-                
-                // Company name
-                const nameCell = document.createElement('td');
-                nameCell.textContent = stock.company_name || 'N/A';
-                row.appendChild(nameCell);
-                
-                // Current price
-                const currentPriceCell = document.createElement('td');
-                currentPriceCell.textContent = `₹${stock.current_price}`;
-                row.appendChild(currentPriceCell);
-                
-                // Year ago price
-                const yearAgoPriceCell = document.createElement('td');
-                yearAgoPriceCell.textContent = `₹${stock.year_ago_price}`;
-                row.appendChild(yearAgoPriceCell);
-                
-                // Percent change
-                const changeCell = document.createElement('td');
-                const changeValue = stock.percent_change;
-                const changeText = `${changeValue > 0 ? '+' : ''}${changeValue}%`;
-                changeCell.textContent = changeText;
-                changeCell.className = changeValue >= 0 ? 'change-positive' : 'change-negative';
-                row.appendChild(changeCell);
-                
-                elements.worstPerformersBody.appendChild(row);
-            });
-        }
-        
-        // Switch between top and worst performers tabs
-        function switchPerformanceTab(tab, elements) {
-            if (tab === 'top') {
-                elements.topPerformersTab.classList.add('active');
-                elements.worstPerformersTab.classList.remove('active');
-                elements.topPerformersContent.style.display = 'block';
-                elements.worstPerformersContent.style.display = 'none';
-            } else {
-                elements.topPerformersTab.classList.remove('active');
-                elements.worstPerformersTab.classList.add('active');
-                elements.topPerformersContent.style.display = 'none';
-                elements.worstPerformersContent.style.display = 'block';
-            }
-        }
-        
-        // Hide performance section
-        function hidePerformanceSection(elements) {
-            elements.performanceSection.style.display = 'none';
         }
         
         // Event Handlers
